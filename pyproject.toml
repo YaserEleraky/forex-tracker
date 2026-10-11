@@ -1,0 +1,34 @@
+#pip install --upgrade pip setuptools wheel
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forex-tracker"
+version = "0.1.0"  # <--- هذا هو السطر الناقص الذي يسبب الخطأ!
+description = "CLI tool for Forex analysis with AI integration roadmap."
+authors = [
+    { name="Yaser Elsayed", email="elsaydyasser99@gmail.com" }
+]
+readme = "README.md"
+license = { text="MIT" }
+requires-python = ">=3.12"
+dependencies = [
+    "requests",
+    "python-dotenv",
+]
+
+[project.scripts]
+forex = "cli.parser:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cli*", "core*", "storage*", "utils*"]
+
+# أدوات التطوير المستقبلية
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+select = ["E", "F", "W", "I"]
