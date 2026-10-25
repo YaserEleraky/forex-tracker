@@ -5,6 +5,7 @@ storage/memory_storage.py
 
 from __future__ import annotations
 from typing import Any
+from core.candle import Candle
 from storage.base import Storage
 from core.logger import logger
 
@@ -46,3 +47,16 @@ class MemoryStorage(Storage):
         This method returns a boolean indicating whether the storage system is currently connected.
         """
         return self._connected
+
+    def save_candle(self, candle: Candle) -> None:
+        """حفظ الشمعة في قاموس بالذاكرة."""
+        if not hasattr(self, "_candles"):
+            self._candles = []
+        self._candles.append(candle)
+
+    def get_candles(self, pair: str, limit: int = 10) -> list[Candle]:
+        """استرجاع الشموع من الذاكرة."""
+        if not hasattr(self, "_candles"):
+            return []
+        filtered = [c for c in self._candles if c.pair == pair.upper()]
+        return filtered[-limit:]

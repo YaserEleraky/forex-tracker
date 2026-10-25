@@ -41,3 +41,12 @@ class ValidationError(ForexError):
     """
 
     pass
+
+
+class NetworkError(ForexError):
+    """
+    استثناء يحدث عند وجود مشكلة في الشبكة أو الاتصال.
+    Exception raised when there is a network or connection issue.
+    """
+
+    pass

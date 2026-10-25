@@ -28,3 +28,13 @@ class Storage(ABC):
         This method should return a boolean indicating whether the storage system is currently connected.
         """
         pass
+
+    @abstractmethod
+    def save_candle(self, candle: Candle) -> None:
+        """حفظ شمعة سعرية في قاعدة البيانات"""
+        pass
+
+    @abstractmethod
+    def get_candles(self, pair: str, limit: int = 10) -> list[Candle]:
+        """استرجاع آخر الشموع لزوج معين مرتبة زمنياً"""
+        pass

@@ -2,5 +2,6 @@
     "app_name": "Forex Tracker",
     "version": "0.1.0",
     "data_dir": "./data",
-    "log_file": "./logs/app.log"
+    "log_file": "./logs/app.log",
+    "twelvedata_api_key": "demo"
 }

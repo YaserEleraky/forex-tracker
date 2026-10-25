@@ -1,6 +1,12 @@
 import argparse
 import sys
-from cli.commands import cmd_version, cmd_status
+from cli.commands import (
+    cmd_version,
+    cmd_status,
+    cmd_price,
+    cmd_fetch,
+    cmd_list,
+)
 from core.config import Config
 
 
@@ -33,6 +39,39 @@ def build_parser() -> argparse.ArgumentParser:
         "status", help="Check system status and basic settings"
     )
     p_status.set_defaults(func=cmd_status)
+
+    # 3. أمر price
+    p_price = subparsers.add_parser("price", help="Get real-time exchange rate")
+    p_price.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_price.set_defaults(func=cmd_price)
+
+    # 4. أمر fetch
+    p_fetch = subparsers.add_parser(
+        "fetch", help="Fetch candles from API and store in SQLite"
+    )
+    p_fetch.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_fetch.add_argument(
+        "--limit", type=int, default=1, help="Number of candles to fetch (default: 1)"
+    )
+    p_fetch.set_defaults(func=cmd_fetch)
+
+    # 5. أمر list
+    p_list = subparsers.add_parser("list", help="List stored candles from database")
+    p_list.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_list.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Number of candles to display (default: 10)",
+    )
+    p_list.set_defaults(func=cmd_list)
+
     return parser
 
 
