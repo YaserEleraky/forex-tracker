@@ -31,10 +31,17 @@ class Storage(ABC):
 
     @abstractmethod
     def save_candle(self, candle: Candle) -> None:
-        """حفظ شمعة سعرية في قاعدة البيانات"""
+        """حفظ شمعة سعرية واحدة."""
         pass
 
     @abstractmethod
-    def get_candles(self, pair: str, limit: int = 10) -> list[Candle]:
-        """استرجاع آخر الشموع لزوج معين مرتبة زمنياً"""
+    def save_candles_bulk(self, candles: list[Candle]) -> None:
+        """حفظ قائمة من الشموع دفعة واحدة بكفاءة داخل Transaction موحدة."""
+        pass
+
+    @abstractmethod
+    def get_candles(
+        self, pair: str, interval: str = "1day", limit: int = 10
+    ) -> list[Candle]:
+        """استرجاع الشموع لزوج معين وإطار زمني محدد مرتبة زمنياً."""
         pass

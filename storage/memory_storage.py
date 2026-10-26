@@ -49,14 +49,21 @@ class MemoryStorage(Storage):
         return self._connected
 
     def save_candle(self, candle: Candle) -> None:
-        """حفظ الشمعة في قاموس بالذاكرة."""
+        self.save_candles_bulk([candle])
+
+    def save_candles_bulk(self, candles: list[Candle]) -> None:
         if not hasattr(self, "_candles"):
             self._candles = []
-        self._candles.append(candle)
+        self._candles.extend(candles)
 
-    def get_candles(self, pair: str, limit: int = 10) -> list[Candle]:
-        """استرجاع الشموع من الذاكرة."""
+    def get_candles(
+        self, pair: str, interval: str = "1day", limit: int = 10
+    ) -> list[Candle]:
         if not hasattr(self, "_candles"):
             return []
-        filtered = [c for c in self._candles if c.pair == pair.upper()]
+        filtered = [
+            c
+            for c in self._candles
+            if c.pair == pair.upper() and getattr(c, "interval", "1day") == interval
+        ]
         return filtered[-limit:]

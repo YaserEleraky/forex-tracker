@@ -6,6 +6,7 @@ from cli.commands import (
     cmd_price,
     cmd_fetch,
     cmd_list,
+    cmd_watchlist,
 )
 from core.config import Config
 
@@ -43,7 +44,10 @@ def build_parser() -> argparse.ArgumentParser:
     # 3. أمر price
     p_price = subparsers.add_parser("price", help="Get real-time exchange rate")
     p_price.add_argument(
-        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+        "--pair",
+        type=str,
+        default="EUR/USD",
+        help="Currency pair (e.g., EUR/USD, USD/JPY)",
     )
     p_price.set_defaults(func=cmd_price)
 
@@ -52,7 +56,16 @@ def build_parser() -> argparse.ArgumentParser:
         "fetch", help="Fetch candles from API and store in SQLite"
     )
     p_fetch.add_argument(
-        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+        "--pairs",
+        type=str,
+        default="EUR/USD",
+        help="Currency pair or comma-separated pairs (e.g., EUR/USD,GBP/USD,USD/JPY)",
+    )
+    p_fetch.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (e.g., 1min, 5min, 1h, 4h, 1day)",
     )
     p_fetch.add_argument(
         "--limit", type=int, default=1, help="Number of candles to fetch (default: 1)"
@@ -65,12 +78,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
     )
     p_list.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_list.add_argument(
         "--limit",
         type=int,
         default=10,
         help="Number of candles to display (default: 10)",
     )
     p_list.set_defaults(func=cmd_list)
+
+    # 6. أمر watchlist
+    p_watch = subparsers.add_parser(
+        "watchlist", help="Monitor a list of currency pairs live"
+    )
+    p_watch.add_argument(
+        "--pairs",
+        type=str,
+        default="EUR/USD,GBP/USD,USD/JPY",
+        help="Comma-separated pairs list (default: EUR/USD,GBP/USD,USD/JPY)",
+    )
+    p_watch.set_defaults(func=cmd_watchlist)
 
     return parser
 

@@ -7,7 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-2%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.2.0-blue?style=flat-square)
 
 </div>
 
@@ -49,6 +50,9 @@
 | 💰 **دقة مالية** | استخدام `Decimal` بدلاً من `float` لتجنب أخطاء التقريب |
 | 🔒 **Immutable Objects** | حماية بيانات الشموع من التعديل العرضي |
 | 🔌 **Adapter Pattern** | سهولة استبدال مزودي البيانات (TwelveData → أي مصدر آخر) |
+| ⚡ **Bulk Ingestion** | حفظ مئات الشموع في معاملة واحدة (~300x أسرع) |
+| ⏱️ **Rate Limiting** | تأخير زمني تلقائي بين الطلبات لتفادي حظر الـ API |
+| 🎯 **Domain Validation** | توحيد `eurusd` → `EUR/USD` والتحقق قبل استهلاك الشبكة |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -58,10 +62,11 @@
 
 للاطلاع على التفاصيل المعمارية الكاملة لكل Sprint:
 
-| Sprint | الحالة | التوثيق |
-|--------|--------|---------|
-| **Sprint 0 — Foundation** | ✅ مكتمل | [📄 عرض التوثيق](docs/sprint_0_documentation.md) |
-| **Sprint 1 — PRICE (MVP)** | ✅ مكتمل | [📄 عرض التوثيق](docs/sprint_1_documentation.md) |
+| Sprint | الحالة | الإصدار | التوثيق |
+| -------- | -------- | --------- | --------- |
+| **Sprint 0 — Foundation** | ✅ مكتمل | `v0.1.0` | [📄 عرض التوثيق](docs/sprint-0.md) |
+| **Sprint 1 — PRICE (MVP)** | ✅ مكتمل | `v0.1.0` | [📄 عرض التوثيق](docs/sprint-1.md) |
+| **Sprint 2 — Multi-Pairs & Intervals** | ✅ مكتمل | `v0.2.0` | [📄 عرض التوثيق](docs/sprint-2.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -131,8 +136,6 @@ pip install -e .
 
 ## 💻 الاستخدام وأوامر الـ CLI
 
-بمجرد اكتمال التثبيت وتفعيل البيئة الافتراضية:
-
 ### 📋 عرض قائمة المساعدة
 
 ```bash
@@ -148,36 +151,75 @@ forex price --pair EUR/USD
 **المخرجات المتوقعة:**
 
 ```
-EUR/USD: 1.0842 (2026-10-10 14:30:00)
+💵 EUR/USD Current Price: 1.0842
 ```
 
-### 📥 جلب الشموع وتخزينها في قاعدة البيانات
+### 📥 جلب الشموع — زوج واحد
 
 ```bash
-forex fetch --pair EUR/USD --limit 5
+forex fetch --pair EUR/USD --interval 1h --limit 5
 ```
 
 **المخرجات المتوقعة:**
 
 ```
-✓ Fetched 5 candles for EUR/USD
-✓ Saved to data/candles.db
+✅ Successfully fetched and stored 5 candle(s) for EUR/USD [1h]:
+  • 2026-10-10 14:00:00 | Close: 1.0842 | High: 1.0865 | Low: 1.0803
+  • 2026-10-10 13:00:00 | Close: 1.0838 | High: 1.0855 | Low: 1.0798
+  ...
 ```
 
-### 📊 استعراض آخر الشموع المخزنة
+### 📥 جلب الشموع — عدة أزواج (Batch)
 
 ```bash
-forex list --pair EUR/USD --limit 10
+forex fetch --pairs EUR/USD,GBP/USD,USD/JPY --interval 1day --limit 2
 ```
 
 **المخرجات المتوقعة:**
 
 ```
-┌────────────┬──────────┬──────────┬──────────┬──────────┬────────┐
-│ Timestamp  │ Open     │ High     │ Low      │ Close    │ Volume │
-├────────────┼──────────┼──────────┼──────────┼──────────┼────────┤
-│ 2026-10-10 │ 1.0817   │ 1.0865   │ 1.0803   │ 1.0842   │ 125432 │
-└────────────┴──────────┴──────────┴──────────┴──────────┴────────┘
+⏳ Fetching batch data for 3 pairs [1day]...
+
+--- Batch Ingestion Results ---
+  • EUR/USD    : ✅ 2 candles
+  • GBP/USD    : ✅ 2 candles
+  • USD/JPY    : ✅ 2 candles
+```
+
+### 📊 استعراض الشموع المخزنة (بإطار محدد)
+
+```bash
+forex list --pair EUR/USD --interval 1h --limit 10
+```
+
+**المخرجات المتوقعة:**
+
+```
+--- Stored Candles: EUR/USD [1h] (Last 5) ---
+Date / Time          | Open       | High       | Low        | Close      | Volume
+------------------------------------------------------------------------------------
+2026-10-10 14:00     | 1.0817     | 1.0865     | 1.0803     | 1.0842     | 125432
+2026-10-10 13:00     | 1.0805     | 1.0855     | 1.0798     | 1.0838     | 98321
+...
+```
+
+### 👁️ قائمة المراقبة الحية (Watchlist)
+
+```bash
+forex watchlist --pairs EUR/USD,GBP/USD,USD/JPY
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Loading live quotes for: EUR/USD, GBP/USD, USD/JPY...
+
+--- Live Forex Watchlist ---
+Pair       | Current / Close | High         | Low          | Time (UTC)
+--------------------------------------------------------------------------
+EUR/USD    | 1.0842          | 1.0865       | 1.0803       | 2026-10-10 14:30
+GBP/USD    | 1.2515          | 1.2548       | 1.2492       | 2026-10-10 14:30
+USD/JPY    | 149.32          | 149.85       | 148.95       | 2026-10-10 14:30
 ```
 
 ### 🔍 فحص حالة النظام
@@ -190,17 +232,27 @@ forex status
 
 ```
 --- Forex Tracker Status ---
-App: Forex Tracker
-Log File: ./logs/app.log
-Data Dir: ./data
-DB: ./data/candles.db
+App Name : Forex Tracker
+Version  : 0.2.0
+Data Dir : ./data
+Log File : ./logs/app.log
+Status   : Ready
 ```
+
+### 📋 ملخص الأوامر
+
+| الأمر | الوصف | مثال |
+| ------- | ------- | ------ |
+| `price` | سعر لحظي | `forex price --pair EUR/USD` |
+| `fetch` | جلب + حفظ (زوج أو عدة) | `forex fetch --pairs A,B --interval 1h` |
+| `list` | استعراض السجل | `forex list --pair EUR/USD --interval 1h` |
+| `watchlist` | مقارنة لحظية | `forex watchlist --pairs A,B,C` |
+| `status` | حالة النظام | `forex status` |
+| `version` | الإصدار | `forex version` |
 
 ---
 
 ## 🧪 تشغيل اختبارات الوحدة
-
-لتشغيل حزمة الاختبارات الشاملة:
 
 ```bash
 python -m unittest discover tests
@@ -209,19 +261,20 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-....................
+..........................
 ----------------------------------------------------------------------
-Ran 20 tests in 0.123s
+Ran 26 tests in 0.234s
 
 OK
 ```
 
 ### 🎯 ما الذي تغطيه الاختبارات؟
 
-| الملف | التغطية |
-|-------|---------|
-| `test_foundation.py` | Config Singleton + Storage + Timer Decorator |
-| `test_price_mvp.py` | Candle Validation + HTTP Client + TwelveData Adapter + SQLite CRUD |
+| الملف | التغطية | Sprint |
+| ------- | --------- | -------- |
+| `test_foundation.py` | Config Singleton + Storage + Timer Decorator | 0 |
+| `test_price_mvp.py` | Candle Validation + HTTP Client + TwelveData Adapter + SQLite CRUD | 1 |
+| `test_multi_pairs.py` | CurrencyPair + Interval + Bulk Ingest + Watchlist + Throttling | 2 |
 
 ---
 
@@ -245,7 +298,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list, watchlist...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -258,17 +311,18 @@ forex_tracker/
 │
 ├── docs/                    # توثيق مراحل التطوير
 │   ├── sprint_0_documentation.md
-│   └── sprint_1_documentation.md
+│   ├── sprint_1_documentation.md
+│   └── sprint_2_documentation.md
 │
 ├── services/                # طبقة تنسيق الأعمال (Business Logic)
 │   ├── __init__.py
-│   └── forex_service.py     # منسق العمليات بين الـ API والتخزين
+│   └── forex_service.py     # منسق العمليات (single/multi-pair + throttling)
 │
 ├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
 │   ├── base.py              # العقد الأساسي للتخزين (Storage ABC)
 │   ├── memory_storage.py    # تخزين في الذاكرة للاختبارات
-│   └── sqlite_storage.py    # محرك التخزين الدائم بـ SQLite
+│   └── sqlite_storage.py    # محرك التخزين الدائم بـ SQLite (Bulk + interval)
 │
 ├── utils/                   # أدوات مساعدة
 │   ├── __init__.py
@@ -281,7 +335,8 @@ forex_tracker/
 └── tests/                   # اختبارات الوحدة المؤتمتة
     ├── __init__.py
     ├── test_foundation.py   # اختبارات Sprint 0
-    └── test_price_mvp.py    # اختبارات Sprint 1
+    ├── test_price_mvp.py    # اختبارات Sprint 1
+    └── test_multi_pairs.py  # اختبارات Sprint 2
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -332,8 +387,24 @@ graph TD
 <td>تمرير مصادر البيانات ومحركات التخزين للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
 </tr>
 <tr>
-<td><b>YAGNI & Fail Fast</b></td>
-<td>بناء ما نحتاجه فقط في كل Sprint مع التحقق الصارم من صحة المدخلات قبل معالجتها.</td>
+<td><b>Composite Key & Idempotency</b></td>
+<td><code>UNIQUE(pair, interval, timestamp)</code> مع <code>ON CONFLICT REPLACE</code> لمنع التداخل والتكرار.</td>
+</tr>
+<tr>
+<td><b>Bulk Ingestion</b></td>
+<td><code>executemany</code> ضمن معاملة واحدة — أسرع ~300x من الحفظ الفردي.</td>
+</tr>
+<tr>
+<td><b>Rate Limiting / Throttling</b></td>
+<td>تأخير زمني بين الطلبات لتفادي <code>429 Too Many Requests</code> وحظر الحساب.</td>
+</tr>
+<tr>
+<td><b>Fail Early / Fail Soft</b></td>
+<td>تحقق صارم من المدخلات قبل الشبكة + تخطي الشموع/الأزواج التالفة دون إسقاط العملية كاملة.</td>
+</tr>
+<tr>
+<td><b>YAGNI</b></td>
+<td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
 </table>
 
@@ -345,10 +416,7 @@ graph TD
 
 - [x] **Sprint 0**: Foundation — التأسيس، الإعدادات، السجلات، والأوامر الأساسية → [📄 التوثيق](docs/sprint_0_documentation.md)
 - [x] **Sprint 1**: PRICE (MVP) — نموذج الشمعة، عميل HTTP، محول TwelveData، وقاعدة SQLite → [📄 التوثيق](docs/sprint_1_documentation.md)
-
-### 🚧 قيد التنفيذ
-
-- [ ] **Sprint 2**: Multi-Pairs & Historical Data — دعم أزواج متعددة، الأطر الزمنية، والحفظ الجماعي السريع (Bulk)
+- [x] **Sprint 2**: Multi-Pairs & Intervals — `CurrencyPair`, `Interval`, Bulk Ingestion, Watchlist, Rate Limiting → [📄 التوثيق](docs/sprint_2_documentation.md)
 
 ### 🔮 قادم
 
@@ -362,31 +430,6 @@ graph TD
 - [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
 - [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق
 - [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة
-
----
-
-## 🤝 المساهمة
-
-نرحب بمساهماتكم! يُرجى اتباع الخطوات التالية:
-
-1. **Fork** المشروع
-2. إنشاء فرع جديد (`git checkout -b feature/AmazingFeature`)
-3. **Commit** التغييرات (`git commit -m 'feat: add AmazingFeature'`)
-4. **Push** للفرع (`git push origin feature/AmazingFeature`)
-5. فتح **Pull Request**
-
-### 📝 نمط رسائل Commit
-
-نستخدم [Conventional Commits](https://www.conventionalcommits.org/):
-
-| النوع | الاستخدام |
-| ------- | ----------- |
-| `feat` | ميزة جديدة |
-| `fix` | إصلاح خطأ |
-| `docs` | تحديث التوثيق |
-| `test` | إضافة/تعديل اختبارات |
-| `refactor` | إعادة هيكلة بدون تغيير السلوك |
-| `chore` | مهام روتينية (deps, config) |
 
 ---
 

@@ -29,6 +29,7 @@ class Candle:
     low: Decimal
     close: Decimal
     volume: int = 0
+    interval: str = "1day"
 
     def __post_init__(self):
         if not self.pair:
@@ -74,6 +75,7 @@ class Candle:
                 low=Decimal(str(data["low"])),
                 close=Decimal(str(data["close"])),
                 volume=int(data.get("volume", 0)),
+                interval=str(data.get("interval", "1day")),
             )
         except (KeyError, ValueError) as err:
             raise ValidationError(f"فشل إنشاء الشمعة من البيانات: {err}") from err
@@ -90,4 +92,5 @@ class Candle:
             "low": str(self.low),
             "close": str(self.close),
             "volume": self.volume,
+            "interval": self.interval,
         }
