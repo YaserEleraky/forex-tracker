@@ -1,49 +1,100 @@
 # 📈 Forex Tracker (CLI & Agent Base)
 
-> أداة سطر أوامر (CLI Tool) مفتوحة المصدر مبنية وفق معمارية **Agile / Vertical Slice Architecture** لتحليل أسواق وتداولات العملات الأجنبية (Forex). تمثل الأساس المعماري الصلب لتطوير **Forex Agent** ذكي يعتمد على خوارزميات التعلم الآلي وقابلية التفسير (ML + LSTM + XAI).
+> **أداة سطر أوامر (CLI Tool) مفتوحة المصدر** مبنية وفق معمارية **Agile / Vertical Slice Architecture** لتحليل وتتبع أسواق العملات الأجنبية (Forex). تمثل الأساس المعماري لتطوير **Forex AI Agent** تفاعلي يعتمد على خوارزميات التعلم الآلي وقابلية التفسير (ML + LSTM + XAI).
+
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)
+
+</div>
 
 ---
 
 ## 📑 جدول المحتويات
 
-- [مخرجات Sprint 0](#-مخرجات-sprint-0--foundation)
-- [متطلبات التشغيل](#️-متطلبات-التشغيل-prerequisites)
-- [التثبيت والإعداد](#-التثبيت-والإعداد-installation--setup)
-- [الاستخدام وأوامر الـ CLI](#-الاستخدام-وأوامر-الـ-cli-المتاحة)
-- [تشغيل اختبارات الوحدة](#-تشغيل-اختبارات-الوحدة-automated-tests)
-- [هيكل المشروع](#-هيكل-المشروع-الحالي-project-structure)
+<details>
+<summary>اضغط لعرض المحتويات</summary>
+
+- [نظرة عامة](#-نظرة-عامة)
+- [متطلبات التشغيل](#️-متطلبات-التشغيل)
+- [التثبيت والإعداد](#-التثبيت-والإعداد)
+- [الاستخدام وأوامر الـ CLI](#-الاستخدام-وأوامر-الـ-cli)
+- [الاختبارات](#-تشغيل-اختبارات-الوحدة)
+- [هيكل المشروع](#-هيكل-المشروع-الحالي)
 - [المعمارية ومبادئ التصميم](#️-المعمارية-ومبادئ-التصميم)
 - [خارطة الطريق](#️-خارطة-الطريق-roadmap)
+- [المساهمة](#-المساهمة)
+- [الترخيص](#-الترخيص)
+
+</details>
 
 ---
 
-## 🚀 مخرجات Sprint 0 — Foundation
+## 🎯 نظرة عامة
 
-تم في هذا الـ Sprint تأسيس البنية التحتية الأساسية والصلبة للمشروع مع تطبيق مبادئ **Clean Code** و **Design Patterns**:
+**Forex Tracker** ليس مجرد أداة لجلب الأسعار — بل هو **أساس معماري صلب** لبناء وكيل ذكي (AI Agent) قادر على:
 
-| # | المكوّن | الوصف | النمط المستخدم |
-| --- | --------- | ------- | ---------------- |
-| 1 | **Config Layer** | تحميل مركزي للإعدادات من `config.json` مع دعم التجاوز عبر متغيرات البيئة | Singleton Pattern |
-| 2 | **Custom Exceptions** | شجرة أخطاء معيارية وموحدة ترث من `ForexError` لتسهيل التتبع والمعالجة | Exception Hierarchy |
-| 3 | **Logging System** | تسجيل تلقائي في ملف دائم (`logs/app.log`) + عرض على الشاشة | Handler Chain |
-| 4 | **Diagnostic Decorators** | ديكوريتور `@timer` لقياس زمن استجابة الدوال | Decorator Pattern |
-| 5 | **Storage Abstraction** | واجهة تجريدية عامة للتخزين مع تطبيق مبدئي في الذاكرة | Repository / ABC |
-| 6 | **Modular CLI** | واجهة سطر أوامر بـ `argparse` مع ربط الأوامر بالدوال ودعم أمر النظام `forex` | Command / Dispatch |
-| 7 | **Automated Testing** | تغطية كاملة للبنية التحتية باستخدام `unittest` القياسية | Test Isolation |
+- 📊 تحليل الأسواق وتتبع الشموع السعرية بدقة مالية عالية.
+- 🤖 استخدام نماذج التعلم الآلي للتنبؤ بالاتجاهات.
+- 🔍 تقديم تفسيرات واضحة لقرارات النماذج (Explainable AI).
 
----
+### ✨ المميزات الأساسية
 
-## 🛠️ متطلبات التشغيل (Prerequisites)
-
-| المتطلب | الإصدار |
-| --------- | --------- |
-| **Python** | 3.12+ |
-| **نظام التشغيل** | Linux / WSL Ubuntu / macOS / Windows |
-| **أدوات إضافية** | `pip`, `venv` (مدمجة في Python 3.12) |
+| الميزة | الوصف |
+| -------- | ------- |
+| 🏗️ **Clean Architecture** | فصل تام بين الطبقات (Domain / Services / CLI / Storage) |
+| 💰 **دقة مالية** | استخدام `Decimal` بدلاً من `float` لتجنب أخطاء التقريب |
+| 🔒 **Immutable Objects** | حماية بيانات الشموع من التعديل العرضي |
+| 🔌 **Adapter Pattern** | سهولة استبدال مزودي البيانات (TwelveData → أي مصدر آخر) |
+| 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
+| 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
 ---
 
-## 📦 التثبيت والإعداد (Installation & Setup)
+## 📚 توثيق الـ Sprints المكتملة
+
+للاطلاع على التفاصيل المعمارية الكاملة لكل Sprint:
+
+| Sprint | الحالة | التوثيق |
+|--------|--------|---------|
+| **Sprint 0 — Foundation** | ✅ مكتمل | [📄 عرض التوثيق](docs/sprint_0_documentation.md) |
+| **Sprint 1 — PRICE (MVP)** | ✅ مكتمل | [📄 عرض التوثيق](docs/sprint_1_documentation.md) |
+
+> 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
+
+---
+
+## 🛠️ متطلبات التشغيل
+
+<table>
+<tr>
+<th>المتطلب</th>
+<th>الإصدار</th>
+<th>ملاحظات</th>
+</tr>
+<tr>
+<td><b>Python</b></td>
+<td>3.12+</td>
+<td>مطلوب لدعم Type Hints الحديثة و <code>match</code> statements</td>
+</tr>
+<tr>
+<td><b>نظام التشغيل</b></td>
+<td>Linux / WSL Ubuntu / macOS / Windows</td>
+<td>جميع الأنظمة مدعومة</td>
+</tr>
+<tr>
+<td><b>أدوات إضافية</b></td>
+<td><code>pip</code>, <code>venv</code></td>
+<td>مدمجة مع Python 3.12</td>
+</tr>
+</table>
+
+---
+
+## 📦 التثبيت والإعداد
 
 ### 1️⃣ استنساخ المستودع
 
@@ -54,12 +105,13 @@ cd forex_tracker
 
 ### 2️⃣ إنشاء وتفعيل البيئة الافتراضية
 
+**إنشاء البيئة:**
+
 ```bash
-# إنشاء البيئة
 python3 -m venv venv
 ```
 
-**تفعيل البيئة:**
+**تفعيل البيئة حسب نظام التشغيل:**
 
 | النظام | الأمر |
 | -------- | ------- |
@@ -67,217 +119,289 @@ python3 -m venv venv
 | **Windows (PowerShell)** | `.\venv\Scripts\Activate.ps1` |
 | **Windows (CMD)** | `venv\Scripts\activate.bat` |
 
-### 3️⃣ تثبيت الحزمة كأمر طرفي تفاعلي
+### 3️⃣ تثبيت الحزمة
 
 ```bash
 pip install -e .
 ```
 
-> 💡 **ملاحظة**: خيار `-e` (Editable Mode) يتيح تعديل الكود واختباره **فوراً** عبر أمر `forex` دون الحاجة لإعادة التثبيت — مثالي لبيئة التطوير.
+> 💡 **ملاحظة**: خيار `-e` (Editable Mode) يتيح تعديل الكود واختباره **فوراً** عبر أمر `forex` دون الحاجة لإعادة التثبيت.
 
 ---
 
-## 💻 الاستخدام وأوامر الـ CLI المتاحة
+## 💻 الاستخدام وأوامر الـ CLI
 
-بمجرد اكتمال التثبيت، يمكنك استدعاء الأداة مباشرة من أي مكان داخل البيئة الافتراضية:
+بمجرد اكتمال التثبيت وتفعيل البيئة الافتراضية:
 
-### 📋 عرض قائمة الأوامر والمساعدة
+### 📋 عرض قائمة المساعدة
 
 ```bash
 forex --help
 ```
 
-### 🔢 فحص رقم إصدار التطبيق
+### 💵 جلب السعر اللحظي الفوري
 
 ```bash
-forex version
+forex price --pair EUR/USD
 ```
 
-**المتوقع:**
+**المخرجات المتوقعة:**
 
 ```
-Forex Tracker v0.1.0
+EUR/USD: 1.0842 (2026-10-10 14:30:00)
 ```
 
-### 🔍 التحقق من حالة النظام ومسارات السجلات
+### 📥 جلب الشموع وتخزينها في قاعدة البيانات
+
+```bash
+forex fetch --pair EUR/USD --limit 5
+```
+
+**المخرجات المتوقعة:**
+
+```
+✓ Fetched 5 candles for EUR/USD
+✓ Saved to data/candles.db
+```
+
+### 📊 استعراض آخر الشموع المخزنة
+
+```bash
+forex list --pair EUR/USD --limit 10
+```
+
+**المخرجات المتوقعة:**
+
+```
+┌────────────┬──────────┬──────────┬──────────┬──────────┬────────┐
+│ Timestamp  │ Open     │ High     │ Low      │ Close    │ Volume │
+├────────────┼──────────┼──────────┼──────────┼──────────┼────────┤
+│ 2026-10-10 │ 1.0817   │ 1.0865   │ 1.0803   │ 1.0842   │ 125432 │
+└────────────┴──────────┴──────────┴──────────┴──────────┴────────┘
+```
+
+### 🔍 فحص حالة النظام
 
 ```bash
 forex status
 ```
 
-**المتوقع:**
+**المخرجات المتوقعة:**
 
 ```
 --- Forex Tracker Status ---
 App: Forex Tracker
 Log File: ./logs/app.log
 Data Dir: ./data
-```
-
-### 🐍 التشغيل المباشر عبر Python
-
-بدلاً من أمر النظام:
-
-```bash
-python3 main.py --help
-python3 main.py version
-python3 main.py status
+DB: ./data/candles.db
 ```
 
 ---
 
-## 🧪 تشغيل اختبارات الوحدة (Automated Tests)
+## 🧪 تشغيل اختبارات الوحدة
 
-للتحقق من سلامة البنية التحتية الأساسية:
+لتشغيل حزمة الاختبارات الشاملة:
 
 ```bash
-python -m unittest tests/test_foundation.py
+python -m unittest discover tests
 ```
 
 **النتيجة المتوقعة:**
 
 ```
-...
+....................
 ----------------------------------------------------------------------
-Ran 3 tests in 0.0xxs
+Ran 20 tests in 0.123s
 
 OK
 ```
 
 ### 🎯 ما الذي تغطيه الاختبارات؟
 
-| الاختبار | ما يتحقق منه |
-| ---------- | --------------- |
-| `test_config_singleton_and_values` | تطابق الكائن في الذاكرة + صحة القيم |
-| `test_memory_storage_lifecycle` | دورة حياة الاتصال (connect / disconnect) |
-| `test_timer_decorator` | سلامة مخرجات الدالة بعد تطبيق الـ Decorator |
+| الملف | التغطية |
+|-------|---------|
+| `test_foundation.py` | Config Singleton + Storage + Timer Decorator |
+| `test_price_mvp.py` | Candle Validation + HTTP Client + TwelveData Adapter + SQLite CRUD |
 
 ---
 
-## 📂 هيكل المشروع الحالي (Project Structure)
+## 📂 هيكل المشروع الحالي
 
 ```
 forex_tracker/
+│
 ├── config.json              # ملف الإعدادات الأساسي
 ├── pyproject.toml           # إعدادات الحزمة وربط أمر forex
 ├── README.md                # توثيق المشروع
 ├── main.py                  # نقطة الدخول البديلة للتشغيل المباشر
 │
+├── api/                     # طبقة الاتصال الخارجي والشبكة
+│   ├── __init__.py
+│   ├── client.py            # عميل HTTP الموحد ومعالجة الـ Timeout
+│   └── sources/             # محولات مصادر البيانات (Adapters)
+│       ├── __init__.py
+│       └── twelvedata.py    # محول واجهة TwelveData API
+│
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
-│   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI main()
-│   └── commands.py          # دوال تنفيذ الأوامر (version, status)
+│   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list...)
 │
-├── core/                    # النواة الأساسية
+├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
+│   ├── candle.py            # نموذج الشمعة السعرية (Immutable Value Object)
+│   ├── pair.py              # كائن التحقق وتوحيد أزواج العملات
+│   ├── intervals.py         # الأطر الزمنية القياسية (Enum)
 │   ├── config.py            # مدير الإعدادات (Singleton)
 │   ├── exceptions.py        # التسلسل الهرمي للأخطاء
 │   └── logger.py            # نظام السجلات
 │
-├── storage/                 # طبقة التخزين المجردة
+├── docs/                    # توثيق مراحل التطوير
+│   ├── sprint_0_documentation.md
+│   └── sprint_1_documentation.md
+│
+├── services/                # طبقة تنسيق الأعمال (Business Logic)
+│   ├── __init__.py
+│   └── forex_service.py     # منسق العمليات بين الـ API والتخزين
+│
+├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
 │   ├── base.py              # العقد الأساسي للتخزين (Storage ABC)
-│   └── memory_storage.py    # تخزين في الذاكرة للاختبارات
+│   ├── memory_storage.py    # تخزين في الذاكرة للاختبارات
+│   └── sqlite_storage.py    # محرك التخزين الدائم بـ SQLite
 │
 ├── utils/                   # أدوات مساعدة
 │   ├── __init__.py
 │   └── decorators.py        # ديكوريتور قياس الأداء (@timer)
 │
-├── logs/                    # مجلد حفظ سجلات التطبيق
+├── data/                    # مجلد قاعدة البيانات المحلية
+│   └── candles.db
+├── logs/                    # مجلد سجلات التطبيق
 │   └── app.log
-│
-└── tests/                   # اختبارات الوحدة
+└── tests/                   # اختبارات الوحدة المؤتمتة
     ├── __init__.py
-    └── test_foundation.py   # اختبارات Sprint 0
+    ├── test_foundation.py   # اختبارات Sprint 0
+    └── test_price_mvp.py    # اختبارات Sprint 1
+```
+
+### 🗂️ الطبقات المعمارية
+
+```mermaid
+graph TD
+    A[CLI Layer<br/>cli/] --> B[Service Layer<br/>services/]
+    B --> C[API Layer<br/>api/]
+    B --> D[Storage Layer<br/>storage/]
+    B --> E[Domain Layer<br/>core/]
+    C --> E
+    D --> E
+    F[Utils<br/>utils/] -.-> B
+    G[Config<br/>core/config.py] -.-> C
+    G -.-> D
+    G -.-> B
+
+    style A fill:#bbf,stroke:#333,stroke-width:2px
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#bfb,stroke:#333,stroke-width:3px
+    style C fill:#fdd,stroke:#333
+    style D fill:#fdd,stroke:#333
 ```
 
 ---
 
 ## 🏗️ المعمارية ومبادئ التصميم
 
-### 🎯 المبادئ الذهبية المطبقة
-
-| المبدأ | التطبيق في المشروع |
-| -------- | --------------------- |
-| **Single Responsibility** | كل ملف له مسؤولية واحدة واضحة |
-| **Open/Closed Principle** | إضافة أمر جديد = سطرين في `parser.py` |
-| **Dependency Inversion** | الخدمات تعتمد على `Storage ABC` مش على تطبيق محدد |
-| **Separation of Concerns** | Parsing منفصل عن Execution |
-| **Fail Fast** | التحقق من وجود الملفات عند الإقلاع |
-| **YAGNI** | لا كود زائد، نبني ما نحتاجه فقط |
-
-### 🔄 مخطط تدفق تنفيذ الأمر
-
-```mermaid
-graph TD
-    A[User: forex version] --> B[main.py]
-    B --> C{Has args?}
-    C -->|No| D[Print help]
-    C -->|Yes| E[parser.build_parser]
-    E --> F[parse_args]
-    F --> G{Dispatch via func}
-    G --> H[cmd_version]
-    H --> I[Config Singleton]
-    I --> J[Print result]
-
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style G fill:#f9f,stroke:#333,stroke-width:2px
-    style J fill:#bfb,stroke:#333,stroke-width:2px
-```
-
-### 🗂️ طبقات المشروع
-
-| الطبقة | الدور | الملفات |
-| -------- | ------- | --------- |
-| **Entry Point** | نقطة البداية | `main.py` |
-| **CLI Layer** | تحليل المدخلات وتنفيذ الأوامر | `cli/` |
-| **Core Layer** | الإعدادات، السجلات، الأخطاء | `core/` |
-| **Storage Layer** | التجريد والتخزين | `storage/` |
-| **Utils Layer** | أدوات مساعدة | `utils/` |
-| **Tests Layer** | اختبارات الوحدة | `tests/` |
+<table>
+<tr>
+<th width="25%">المبدأ</th>
+<th width="75%">التطبيق في المشروع</th>
+</tr>
+<tr>
+<td><b>Clean Architecture</b></td>
+<td>فصل طبقات النواة (Domain) والخدمات (Services) عن واجهات الـ CLI وقواعد البيانات.</td>
+</tr>
+<tr>
+<td><b>Immutable Value Objects</b></td>
+<td>حماية بيانات الشموع من التعديل العرضي وحسابات دقيقة بـ <code>Decimal</code>.</td>
+</tr>
+<tr>
+<td><b>Adapter Pattern</b></td>
+<td>فصل كود مزودي الأسعار الخارجيين عن باقي أجزاء التطبيق لتسهيل استبدالهم لاحقاً.</td>
+</tr>
+<tr>
+<td><b>Dependency Injection</b></td>
+<td>تمرير مصادر البيانات ومحركات التخزين للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
+</tr>
+<tr>
+<td><b>YAGNI & Fail Fast</b></td>
+<td>بناء ما نحتاجه فقط في كل Sprint مع التحقق الصارم من صحة المدخلات قبل معالجتها.</td>
+</tr>
+</table>
 
 ---
 
 ## 🗺️ خارطة الطريق (Roadmap)
 
-### ✅ Sprint 0 — Foundation (مكتمل)
+### ✅ المكتمل
 
-- [x] Config Singleton
-- [x] Logging System
-- [x] Custom Exceptions
-- [x] Timer Decorator
-- [x] Storage ABC + MemoryStorage
-- [x] Modular CLI
-- [x] Unit Tests
+- [x] **Sprint 0**: Foundation — التأسيس، الإعدادات، السجلات، والأوامر الأساسية → [📄 التوثيق](docs/sprint_0_documentation.md)
+- [x] **Sprint 1**: PRICE (MVP) — نموذج الشمعة، عميل HTTP، محول TwelveData، وقاعدة SQLite → [📄 التوثيق](docs/sprint_1_documentation.md)
 
-## 🤝 المساهمة (Contributing)
+### 🚧 قيد التنفيذ
 
-المساهمات مرحب بها! يُرجى اتباع الخطوات التالية:
+- [ ] **Sprint 2**: Multi-Pairs & Historical Data — دعم أزواج متعددة، الأطر الزمنية، والحفظ الجماعي السريع (Bulk)
 
-1. Fork المشروع
+### 🔮 قادم
+
+- [ ] **Sprint 3**: Technical Indicators Engine — محرك المؤشرات الفنية (SMA, EMA, RSI, MACD)
+- [ ] **Sprint 4**: Alerts & Triggers — نظام التنبيهات السعرية والفنية
+- [ ] **Sprint 5**: Caching & Performance — التخزين المؤقت عبر Redis وتقليل استهلاك الحصة
+- [ ] **Sprint 6**: Strategy Backtesting — محاكي اختبار استراتيجيات التداول التاريخية
+- [ ] **Sprint 7**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
+- [ ] **Sprint 8**: Machine Learning (Forecasting) — نماذج التنبؤ باتجاه الأسعار
+- [ ] **Sprint 9**: Explainable AI (XAI) — طبقة تفسير قرارات النماذج الذكية
+- [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
+- [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق
+- [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة
+
+---
+
+## 🤝 المساهمة
+
+نرحب بمساهماتكم! يُرجى اتباع الخطوات التالية:
+
+1. **Fork** المشروع
 2. إنشاء فرع جديد (`git checkout -b feature/AmazingFeature`)
-3. Commit التغييرات (`git commit -m 'Add AmazingFeature'`)
-4. Push للفرع (`git push origin feature/AmazingFeature`)
-5. فتح Pull Request
+3. **Commit** التغييرات (`git commit -m 'feat: add AmazingFeature'`)
+4. **Push** للفرع (`git push origin feature/AmazingFeature`)
+5. فتح **Pull Request**
+
+### 📝 نمط رسائل Commit
+
+نستخدم [Conventional Commits](https://www.conventionalcommits.org/):
+
+| النوع | الاستخدام |
+| ------- | ----------- |
+| `feat` | ميزة جديدة |
+| `fix` | إصلاح خطأ |
+| `docs` | تحديث التوثيق |
+| `test` | إضافة/تعديل اختبارات |
+| `refactor` | إعادة هيكلة بدون تغيير السلوك |
+| `chore` | مهام روتينية (deps, config) |
 
 ---
 
-## 📄 الترخيص (License)
+## 📄 الترخيص
 
-هذا المشروع مفتوح المصدر — راجع ملف `LICENSE` لمزيد من التفاصيل.
-
----
-
-## 📬 التواصل
-
-لأي استفسارات أو اقتراحات، يُرجى فتح **Issue** في المستودع.
+هذا المشروع مرخص تحت رخصة **MIT**. راجع ملف [LICENSE](LICENSE) لمزيد من التفاصيل.
 
 ---
 
 <div align="center">
 
-**⭐ إذا أعجبك المشروع، لا تنسَ إعطاءه نجمة! ⭐**
+### ⭐ إذا أعجبك المشروع، لا تنسَ إعطاءه نجمة! ⭐
 
-صُنع بـ ❤️ لمجتمع Forex العربي
+**صُنع بـ ❤️ لمجتمع Forex العربي**
+
+[⬆ العودة للأعلى](#-forex-tracker-cli--agent-base)
 
 </div>
