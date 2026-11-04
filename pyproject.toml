@@ -25,8 +25,7 @@ forex = "cli.parser:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["cli*", "core*", "storage*", "utils*", "api*", "services*"]
-
+include = ["cli*", "core*", "storage*", "utils*", "api*", "services*", "indicators*"]
 # # أدوات التطوير المستقبلية
 # [tool.black]
 # line-length = 88

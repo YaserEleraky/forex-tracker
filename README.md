@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-2%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.2.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-3%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.3.0-blue?style=flat-square)
 
 </div>
 
@@ -53,6 +53,7 @@
 | ⚡ **Bulk Ingestion** | حفظ مئات الشموع في معاملة واحدة (~300x أسرع) |
 | ⏱️ **Rate Limiting** | تأخير زمني تلقائي بين الطلبات لتفادي حظر الـ API |
 | 🎯 **Domain Validation** | توحيد `eurusd` → `EUR/USD` والتحقق قبل استهلاك الشبكة |
+| 📐 **Technical Indicators Engine** | محرك تحليلي نقي لحساب SMA, EMA, RSI, و MACD بدون مكتبات خارجية ثقيلة |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -67,6 +68,7 @@
 | **Sprint 0 — Foundation** | ✅ مكتمل | `v0.1.0` | [📄 عرض التوثيق](docs/sprint-0.md) |
 | **Sprint 1 — PRICE (MVP)** | ✅ مكتمل | `v0.1.0` | [📄 عرض التوثيق](docs/sprint-1.md) |
 | **Sprint 2 — Multi-Pairs & Intervals** | ✅ مكتمل | `v0.2.0` | [📄 عرض التوثيق](docs/sprint-2.md) |
+| **Sprint 3 — Technical Indicators** | ✅ مكتمل | `v0.3.0` | [📄 عرض التوثيق](docs/sprint-3.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -222,6 +224,33 @@ GBP/USD    | 1.2515          | 1.2548       | 1.2492       | 2026-10-10 14:30
 USD/JPY    | 149.32          | 149.85       | 148.95       | 2026-10-10 14:30
 ```
 
+### 📈 التحليل الفني والمؤشرات (Technical Analysis)
+
+```bash
+forex analyze --pair EUR/USD --interval 1day --limit 35
+```
+
+**المخرجات المتوقعة:**
+
+```
+========================================================
+ 📊 Technical Analysis: EUR/USD [1day] (Evaluated: 35 candles)
+========================================================
+• Latest Close : 1.0842 (at 2026-10-10 14:00)
+• RSI (14)     : 58.42 -> Neutral
+• MACD (12,26) : 0.00142 | Signal (9): 0.00098 | Hist: 0.00044 -> 🟢 Bullish Momentum (زخم صاعد)
+• SMA (20)     : 1.0795 -> Above SMA (اتجاه صاعد قصير المدى)
+
+--- Recent Candles Matrix (Last 5) ---
+Timestamp         | Close      | SMA(20)    | RSI(14)    | MACD (Hist)       
+---------------------------------------------------------------------------
+2026-10-10 10:00  | 1.0815     | 1.0782     | 54.12      | 0.00031           
+2026-10-10 11:00  | 1.0822     | 1.0786     | 55.40      | 0.00035           
+2026-10-10 12:00  | 1.0830     | 1.0789     | 56.81      | 0.00039           
+2026-10-10 13:00  | 1.0838     | 1.0792     | 57.95      | 0.00041           
+2026-10-10 14:00  | 1.0842     | 1.0795     | 58.42      | 0.00044           
+```
+
 ### 🔍 فحص حالة النظام
 
 ```bash
@@ -233,7 +262,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name : Forex Tracker
-Version  : 0.2.0
+Version  : 0.3.0
 Data Dir : ./data
 Log File : ./logs/app.log
 Status   : Ready
@@ -247,6 +276,7 @@ Status   : Ready
 | `fetch` | جلب + حفظ (زوج أو عدة) | `forex fetch --pairs A,B --interval 1h` |
 | `list` | استعراض السجل | `forex list --pair EUR/USD --interval 1h` |
 | `watchlist` | مقارنة لحظية | `forex watchlist --pairs A,B,C` |
+| `analyze` | تحليل فني ومؤشرات | `forex analyze --pair EUR/USD --interval 1day` |
 | `status` | حالة النظام | `forex status` |
 | `version` | الإصدار | `forex version` |
 
@@ -275,6 +305,7 @@ OK
 | `test_foundation.py` | Config Singleton + Storage + Timer Decorator | 0 |
 | `test_price_mvp.py` | Candle Validation + HTTP Client + TwelveData Adapter + SQLite CRUD | 1 |
 | `test_multi_pairs.py` | CurrencyPair + Interval + Bulk Ingest + Watchlist + Throttling | 2 |
+| `test_indicators.py` | SMA + EMA + RSI (Wilder's Smoothing) + MACD Engine & Relations | 3 |
 
 ---
 
@@ -298,7 +329,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list, watchlist...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list, watchlist, analyze...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -312,11 +343,18 @@ forex_tracker/
 ├── docs/                    # توثيق مراحل التطوير
 │   ├── sprint_0_documentation.md
 │   ├── sprint_1_documentation.md
-│   └── sprint_2_documentation.md
+│   ├── sprint_2_documentation.md
+│   └── sprint_3_documentation.md
+│
+├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
+│   ├── __init__.py
+│   ├── base.py              # العقد التجريدي وكائنات النتائج (BaseIndicator)
+│   ├── moving_averages.py   # حساب SMA و EMA بدقة Decimal
+│   └── momentum.py          # مؤشرات الزخم والاتجاه (RSI & MACD)
 │
 ├── services/                # طبقة تنسيق الأعمال (Business Logic)
 │   ├── __init__.py
-│   └── forex_service.py     # منسق العمليات (single/multi-pair + throttling)
+│   └── forex_service.py     # منسق العمليات (single/multi-pair + indicators analysis)
 │
 ├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
@@ -336,7 +374,8 @@ forex_tracker/
     ├── __init__.py
     ├── test_foundation.py   # اختبارات Sprint 0
     ├── test_price_mvp.py    # اختبارات Sprint 1
-    └── test_multi_pairs.py  # اختبارات Sprint 2
+    ├── test_multi_pairs.py  # اختبارات Sprint 2
+    └── test_indicators.py   # اختبارات Sprint 3
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -346,7 +385,9 @@ graph TD
     A[CLI Layer<br/>cli/] --> B[Service Layer<br/>services/]
     B --> C[API Layer<br/>api/]
     B --> D[Storage Layer<br/>storage/]
+    B --> H[Indicators Engine<br/>indicators/]
     B --> E[Domain Layer<br/>core/]
+    H --> E
     C --> E
     D --> E
     F[Utils<br/>utils/] -.-> B
@@ -357,6 +398,7 @@ graph TD
     style A fill:#bbf,stroke:#333,stroke-width:2px
     style B fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#bfb,stroke:#333,stroke-width:3px
+    style H fill:#bdf,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
@@ -376,7 +418,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Immutable Value Objects</b></td>
-<td>حماية بيانات الشموع من التعديل العرضي وحسابات دقيقة بـ <code>Decimal</code>.</td>
+<td>حماية بيانات الشموع والنتائج من التعديل العرضي وحسابات دقيقة بـ <code>Decimal</code>.</td>
 </tr>
 <tr>
 <td><b>Adapter Pattern</b></td>
@@ -403,6 +445,10 @@ graph TD
 <td>تحقق صارم من المدخلات قبل الشبكة + تخطي الشموع/الأزواج التالفة دون إسقاط العملية كاملة.</td>
 </tr>
 <tr>
+<td><b>Financial Standards</b></td>
+<td>Wilder's Smoothing في RSI + Seed EMA بـ SMA + <code>Decimal</code> في كل خطوة حسابية.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -417,10 +463,10 @@ graph TD
 - [x] **Sprint 0**: Foundation — التأسيس، الإعدادات، السجلات، والأوامر الأساسية → [📄 التوثيق](docs/sprint_0_documentation.md)
 - [x] **Sprint 1**: PRICE (MVP) — نموذج الشمعة، عميل HTTP، محول TwelveData، وقاعدة SQLite → [📄 التوثيق](docs/sprint_1_documentation.md)
 - [x] **Sprint 2**: Multi-Pairs & Intervals — `CurrencyPair`, `Interval`, Bulk Ingestion, Watchlist, Rate Limiting → [📄 التوثيق](docs/sprint_2_documentation.md)
+- [x] **Sprint 3**: Technical Indicators Engine — محرك المؤشرات الفنية (SMA, EMA, RSI, MACD) → [📄 التوثيق](docs/sprint_3_documentation.md)
 
 ### 🔮 قادم
 
-- [ ] **Sprint 3**: Technical Indicators Engine — محرك المؤشرات الفنية (SMA, EMA, RSI, MACD)
 - [ ] **Sprint 4**: Alerts & Triggers — نظام التنبيهات السعرية والفنية
 - [ ] **Sprint 5**: Caching & Performance — التخزين المؤقت عبر Redis وتقليل استهلاك الحصة
 - [ ] **Sprint 6**: Strategy Backtesting — محاكي اختبار استراتيجيات التداول التاريخية
@@ -430,6 +476,32 @@ graph TD
 - [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
 - [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق
 - [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة
+
+---
+
+## 🤝 المساهمة
+
+نرحب بمساهماتكم! يُرجى اتباع الخطوات التالية:
+
+1. **Fork** المشروع
+2. إنشاء فرع جديد (`git checkout -b feature/AmazingFeature`)
+3. **Commit** التغييرات (`git commit -m 'feat: add AmazingFeature'`)
+4. **Push** للفرع (`git push origin feature/AmazingFeature`)
+5. فتح **Pull Request**
+
+### 📝 نمط رسائل Commit
+
+نستخدم [Conventional Commits](https://www.conventionalcommits.org/):
+
+| النوع | الاستخدام |
+| ------- | ----------- |
+| `feat` | ميزة جديدة |
+| `fix` | إصلاح خطأ |
+| `docs` | تحديث التوثيق |
+| `test` | إضافة/تعديل اختبارات |
+| `refactor` | إعادة هيكلة بدون تغيير السلوك |
+| `perf` | تحسين الأداء |
+| `chore` | مهام روتينية (deps, config) |
 
 ---
 

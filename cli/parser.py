@@ -7,6 +7,7 @@ from cli.commands import (
     cmd_fetch,
     cmd_list,
     cmd_watchlist,
+    cmd_analyze,  # <-- أضف هذا
 )
 from core.config import Config
 
@@ -102,6 +103,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated pairs list (default: EUR/USD,GBP/USD,USD/JPY)",
     )
     p_watch.set_defaults(func=cmd_watchlist)
+
+    # 7. أمر analyze
+    p_analyze = subparsers.add_parser(
+        "analyze", help="Run technical indicators and analyze pair"
+    )
+    p_analyze.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_analyze.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_analyze.add_argument(
+        "--limit",
+        type=int,
+        default=35,
+        help="Number of candles to analyze (default: 35)",
+    )
+    p_analyze.add_argument(
+        "--indicators",
+        type=str,
+        default="sma,rsi,macd",
+        help="Comma-separated indicators: sma,ema,rsi,macd (default: sma,rsi,macd)",
+    )
+    p_analyze.set_defaults(func=cmd_analyze)
 
     return parser
 
