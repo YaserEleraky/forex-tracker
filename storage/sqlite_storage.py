@@ -1,8 +1,8 @@
 from __future__ import annotations
 import os
 import sqlite3
-from datetime import datetime
-from decimal import Decimal
+from typing import Any
+from core.alert import Alert
 from core.candle import Candle
 from core.config import Config
 from core.exceptions import StorageError
@@ -79,7 +79,23 @@ class SQLiteStorage(Storage):
                     "تم ترحيل المخطط بنجاح: إضافة عمود 'interval' إلى جدول candles."
                 )
 
-            # 3. إنشاء الفهرس المركب
+            # 3. إنشاء جدول التنبيهات
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS alerts (
+                    id TEXT PRIMARY KEY,
+                    pair TEXT NOT NULL,
+                    interval TEXT NOT NULL DEFAULT '1day',
+                    metric TEXT NOT NULL,
+                    operator TEXT NOT NULL,
+                    target_value TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'ACTIVE',
+                    message TEXT,
+                    created_at TEXT NOT NULL,
+                    triggered_at TEXT
+                )
+            """)
+
+            # 4. إنشاء الفهرس المركب
             cursor.execute("""
                     CREATE INDEX IF NOT EXISTS idx_pair_interval_timestamp
                     ON candles (pair, interval, timestamp DESC)
@@ -148,3 +164,78 @@ class SQLiteStorage(Storage):
         except sqlite3.Error as err:
             logger.error(f"Failed retrieving candles: {err}")
             raise StorageError(f"Query candles failed: {err}") from err
+
+    # ========================================================
+    # دوال إدارة التنبيهات (Alerts Persistence)
+    # ========================================================
+
+    def save_alert(self, alert: Alert) -> None:
+        """حفظ أو تحديث تنبيه في قاعدة البيانات."""
+        if not self.is_connected():
+            self.connect()
+
+        query = """
+            INSERT OR REPLACE INTO alerts (id, pair, interval, metric, operator, target_value, status, message, created_at, triggered_at)
+            VALUES (:id, :pair, :interval, :metric, :operator, :target_value, :status, :message, :created_at, :triggered_at)
+        """
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(query, alert.to_dict())
+            self._connection.commit()
+            logger.info(f"Alert {alert.id} ({alert.pair}) saved successfully.")
+        except sqlite3.Error as err:
+            logger.error(f"Failed saving alert {alert.id}: {err}")
+            raise StorageError(f"Save alert failed: {err}") from err
+
+    def get_alerts(self, active_only: bool = False) -> list[Alert]:
+        """استرجاع قائمة التنبيهات (النشطة فقط أو الكل)."""
+        if not self.is_connected():
+            self.connect()
+
+        query = "SELECT * FROM alerts"
+        params: tuple[Any, ...] = ()
+
+        if active_only:
+            query += " WHERE status = ?"
+            params = ("ACTIVE",)
+
+        query += " ORDER BY created_at DESC"
+
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            return [Alert.from_dict(dict(row)) for row in rows]
+        except sqlite3.Error as err:
+            logger.error(f"Failed retrieving alerts: {err}")
+            raise StorageError(f"Query alerts failed: {err}") from err
+
+    def get_alert_by_id(self, alert_id: str) -> Alert | None:
+        """استرجاع تنبيه محدد بمعرفه."""
+        if not self.is_connected():
+            self.connect()
+
+        query = "SELECT * FROM alerts WHERE id = ?"
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(query, (alert_id,))
+            row = cursor.fetchone()
+            return Alert.from_dict(dict(row)) if row else None
+        except sqlite3.Error as err:
+            logger.error(f"Failed retrieving alert {alert_id}: {err}")
+            raise StorageError(f"Query alert by ID failed: {err}") from err
+
+    def delete_alert(self, alert_id: str) -> bool:
+        """حذف تنبيه من قاعدة البيانات."""
+        if not self.is_connected():
+            self.connect()
+
+        query = "DELETE FROM alerts WHERE id = ?"
+        try:
+            cursor = self._connection.cursor()
+            cursor.execute(query, (alert_id,))
+            self._connection.commit()
+            return cursor.rowcount > 0
+        except sqlite3.Error as err:
+            logger.error(f"Failed deleting alert {alert_id}: {err}")
+            raise StorageError(f"Delete alert failed: {err}") from err

@@ -4,6 +4,7 @@ from core.config import Config
 from core.exceptions import ForexError
 from core.logger import logger
 from services.forex_service import ForexService
+from services.alert_service import AlertService
 
 
 def cmd_version(args: argparse.Namespace) -> None:
@@ -271,5 +272,131 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
     except ForexError as err:
         logger.error(f"فشل تنفيذ أمر analyze: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_alert_add(args: argparse.Namespace) -> None:
+    """إضافة تنبيه مالي جديد."""
+    pair = getattr(args, "pair", "EUR/USD")
+    condition = getattr(args, "condition", "")
+    interval = getattr(args, "interval", "1day")
+    message = getattr(args, "message", "")
+
+    service = AlertService()
+
+    try:
+        alert = service.create_alert(
+            pair=pair,
+            condition_str=condition,
+            interval=interval,
+            message=message,
+        )
+        print(f"\n✅ Alert created successfully!")
+        print(f"  • ID        : {alert.id}")
+        print(f"  • Pair      : {alert.pair} [{alert.interval}]")
+        print(
+            f"  • Condition : {alert.condition.metric} {alert.condition.operator.value} {alert.condition.target_value}"
+        )
+        print(f"  • Status    : {alert.status.value}")
+        if alert.message:
+            print(f"  • Message   : {alert.message}")
+        print()
+    except ForexError as err:
+        logger.error(f"فشل إضافة التنبيه: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_alert_list(args: argparse.Namespace) -> None:
+    """عرض قائمة التنبيهات المسجلة."""
+    active_only = getattr(args, "active", False)
+    service = AlertService()
+
+    try:
+        alerts = service.list_alerts(active_only=active_only)
+        if not alerts:
+            scope = "active " if active_only else ""
+            print(
+                f"\nNo {scope}alerts found. Use 'forex alert add' to set a new alert.\n"
+            )
+            return
+
+        title = "Active Alerts" if active_only else "All Alerts History"
+        print(f"\n--- {title} ({len(alerts)}) ---")
+        row_fmt = "{:<10} | {:<10} | {:<8} | {:<20} | {:<12} | {:<20}"
+        print(
+            row_fmt.format(
+                "ID", "Pair", "Timeframe", "Condition", "Status", "Created At"
+            )
+        )
+        print("-" * 90)
+
+        for a in alerts:
+            cond_str = f"{a.condition.metric} {a.condition.operator.value} {a.condition.target_value}"
+            created_str = a.created_at.strftime("%Y-%m-%d %H:%M")
+            status_display = (
+                f"🟢 {a.status.value}"
+                if a.status.value == "ACTIVE"
+                else f"⚪ {a.status.value}"
+            )
+            print(
+                row_fmt.format(
+                    a.id, a.pair, a.interval, cond_str, status_display, created_str
+                )
+            )
+        print()
+    except ForexError as err:
+        logger.error(f"فشل استعراض التنبيهات: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_alert_check(args: argparse.Namespace) -> None:
+    """فحص التنبيهات ومطابقتها مع البيانات الحالية للشموع والمؤشرات."""
+    pair = getattr(args, "pair", None)
+    service = AlertService()
+
+    try:
+        print("\n🔍 Checking active alerts against latest market data...")
+        triggered = service.check_alerts(pair=pair)
+
+        if not triggered:
+            print(
+                "✅ All active alerts evaluated. No conditions triggered at this time.\n"
+            )
+            return
+
+        print(f"\n🚨 {len(triggered)} Alert(s) Triggered!")
+        print("=" * 60)
+        for t in triggered:
+            print(f"🔔 [{t['alert_id']}] {t['pair']} ({t['interval']})")
+            print(f"   Condition : {t['metric']} {t['operator']} {t['target_value']}")
+            print(f"   Actual    : {t['actual_value']}")
+            if t["message"]:
+                print(f"   Message   : {t['message']}")
+            print(f"   Triggered : {t['triggered_at'].strftime('%Y-%m-%d %H:%M:%S')}")
+            print("-" * 60)
+        print()
+    except ForexError as err:
+        logger.error(f"فشل فحص التنبيهات: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_alert_delete(args: argparse.Namespace) -> None:
+    """حذف تنبيه من قاعدة البيانات."""
+    alert_id = getattr(args, "id", "")
+    service = AlertService()
+
+    try:
+        deleted = service.delete_alert(alert_id)
+        if deleted:
+            print(f"\n🗑️  Alert '{alert_id}' deleted successfully.\n")
+        else:
+            print(f"\n⚠️  Alert '{alert_id}' not found.\n", file=sys.stderr)
+            sys.exit(1)
+    except ForexError as err:
+        logger.error(f"فشل حذف التنبيه: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)

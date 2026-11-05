@@ -67,3 +67,26 @@ class MemoryStorage(Storage):
             if c.pair == pair.upper() and getattr(c, "interval", "1day") == interval
         ]
         return filtered[-limit:]
+
+    def save_alert(self, alert: Any) -> None:
+        if not hasattr(self, "_alerts"):
+            self._alerts = {}
+        self._alerts[alert.id] = alert
+
+    def get_alerts(self, active_only: bool = False) -> list[Any]:
+        if not hasattr(self, "_alerts"):
+            return []
+        alerts = list(self._alerts.values())
+        if active_only:
+            alerts = [a for a in alerts if a.status.value == "ACTIVE"]
+        return sorted(alerts, key=lambda a: a.created_at, reverse=True)
+
+    def get_alert_by_id(self, alert_id: str) -> Any | None:
+        if not hasattr(self, "_alerts"):
+            return None
+        return self._alerts.get(alert_id)
+
+    def delete_alert(self, alert_id: str) -> bool:
+        if not hasattr(self, "_alerts"):
+            return False
+        return self._alerts.pop(alert_id, None) is not None

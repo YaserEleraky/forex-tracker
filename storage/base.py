@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class Storage(ABC):
@@ -44,4 +45,25 @@ class Storage(ABC):
         self, pair: str, interval: str = "1day", limit: int = 10
     ) -> list[Candle]:
         """استرجاع الشموع لزوج معين وإطار زمني محدد مرتبة زمنياً."""
+        pass
+
+    # --- دوال إدارة التنبيهات (Alerts) ---
+    @abstractmethod
+    def save_alert(self, alert: Any) -> None:
+        """حفظ أو تحديث تنبيه في قاعدة البيانات."""
+        pass
+
+    @abstractmethod
+    def get_alerts(self, active_only: bool = False) -> list[Any]:
+        """استرجاع قائمة التنبيهات."""
+        pass
+
+    @abstractmethod
+    def get_alert_by_id(self, alert_id: str) -> Any | None:
+        """استرجاع تنبيه محدد بمعرفه."""
+        pass
+
+    @abstractmethod
+    def delete_alert(self, alert_id: str) -> bool:
+        """حذف تنبيه من قاعدة البيانات."""
         pass

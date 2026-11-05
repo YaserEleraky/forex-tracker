@@ -1,5 +1,6 @@
 import argparse
 import sys
+from core.config import Config
 from cli.commands import (
     cmd_version,
     cmd_status,
@@ -7,9 +8,12 @@ from cli.commands import (
     cmd_fetch,
     cmd_list,
     cmd_watchlist,
-    cmd_analyze,  # <-- أضف هذا
+    cmd_analyze,
+    cmd_alert_add,
+    cmd_alert_list,
+    cmd_alert_check,
+    cmd_alert_delete,
 )
-from core.config import Config
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -130,6 +134,55 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated indicators: sma,ema,rsi,macd (default: sma,rsi,macd)",
     )
     p_analyze.set_defaults(func=cmd_analyze)
+
+    # 8. أمر alert والعمليات التابعة له
+    p_alert = subparsers.add_parser("alert", help="Manage price and indicator triggers")
+    alert_sub = p_alert.add_subparsers(
+        dest="alert_command",
+        title="Alert Operations",
+        description="Available alert actions",
+    )
+
+    # alert add
+    p_add = alert_sub.add_parser("add", help="Add a new alert condition")
+    p_add.add_argument(
+        "--pair", type=str, required=True, help="Currency pair (e.g., EUR/USD)"
+    )
+    p_add.add_argument(
+        "--condition",
+        type=str,
+        required=True,
+        help="Condition (e.g., 'price > 1.0900', 'rsi < 30')",
+    )
+    p_add.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_add.add_argument("--message", type=str, default="", help="Custom alert message")
+    p_add.set_defaults(func=cmd_alert_add)
+
+    # alert list
+    p_alist = alert_sub.add_parser("list", help="List registered alerts")
+    p_alist.add_argument(
+        "--active", action="store_true", help="List only active alerts"
+    )
+    p_alist.set_defaults(func=cmd_alert_list)
+
+    # alert check
+    p_check = alert_sub.add_parser(
+        "check", help="Evaluate active alerts against current market data"
+    )
+    p_check.add_argument(
+        "--pair", type=str, default=None, help="Filter check to a specific pair"
+    )
+    p_check.set_defaults(func=cmd_alert_check)
+
+    # alert delete
+    p_del = alert_sub.add_parser("delete", help="Delete an alert by ID")
+    p_del.add_argument("--id", type=str, required=True, help="Alert ID to delete")
+    p_del.set_defaults(func=cmd_alert_delete)
 
     return parser
 
