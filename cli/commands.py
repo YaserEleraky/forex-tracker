@@ -5,6 +5,8 @@ from core.exceptions import ForexError
 from core.logger import logger
 from services.forex_service import ForexService
 from services.alert_service import AlertService
+from decimal import Decimal
+
 
 
 def cmd_version(args: argparse.Namespace) -> None:
@@ -431,5 +433,83 @@ def cmd_cache_clear(args: argparse.Namespace) -> None:
         print("\n🧹 Cache has been successfully cleared.\n")
     except ForexError as err:
         logger.error(f"فشل مسح الكاش: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_backtest(args: argparse.Namespace) -> None:
+    """تشغيل محاكاة استراتيجية تداول على البيانات التاريخية وعرض تقرير الأداء."""
+    pair = getattr(args, "pair", "EUR/USD")
+    interval = getattr(args, "interval", "1day")
+    limit = getattr(args, "limit", 100)
+    fast = getattr(args, "fast", 10)
+    slow = getattr(args, "slow", 30)
+    capital = Decimal(str(getattr(args, "capital", 10000.0)))
+    size = Decimal(str(getattr(args, "size", 10000.0)))
+
+    from services.backtest_service import BacktestService
+    from strategies.sma_crossover import SMACrossoverStrategy
+    service = BacktestService()
+
+    try:
+        strategy = SMACrossoverStrategy(fast_period=fast, slow_period=slow)
+        print(f"\n🚀 Running backtest for {pair} [{interval}] using {strategy.name}...")
+        result = service.run(
+            strategy=strategy,
+            pair=pair,
+            interval=interval,
+            limit=limit,
+            initial_capital=capital,
+            trade_size=size,
+        )
+
+        print("\n" + "=" * 65)
+        print(f"📊 BACKTEST PERFORMANCE REPORT: {result.pair} ({result.interval})")
+        print(f"Strategy: {result.strategy_name} | Lookback Candles: {limit}")
+        print("=" * 65)
+
+        roi_sign = "+" if result.roi_percent >= 0 else ""
+        pnl_sign = "+" if result.total_pnl >= 0 else ""
+
+        print(f"  • Initial Capital     : ${result.initial_capital:,.2f}")
+        print(f"  • Final Capital       : ${result.final_capital:,.2f}")
+        print(f"  • Net Profit / Loss   : {pnl_sign}${result.total_pnl:,.2f}")
+        print(f"  • Total ROI           : {roi_sign}{result.roi_percent:.2f}%")
+        print(f"  • Max Drawdown        : {result.max_drawdown_percent:.2f}%")
+        print(f"  • Profit Factor       : {result.profit_factor:.2f}")
+        print("-" * 65)
+        print(f"  • Total Trades        : {result.total_trades}")
+        print(f"  • Winning Trades      : {result.winning_trades} 🟢")
+        print(f"  • Losing Trades       : {result.losing_trades} 🔴")
+        print(f"  • Win Rate            : {result.win_rate:.1f}%")
+        print("=" * 65)
+
+        if result.trades:
+            print("\n📋 Executed Trades Log (Last 10 trades):")
+            header = "{:<5} | {:<16} | {:<10} | {:<16} | {:<10} | {:<12}"
+            print(
+                header.format(
+                    "#", "Entry Time", "Entry Px", "Exit Time", "Exit Px", "PnL ($)"
+                )
+            )
+            print("-" * 80)
+            for i, t in enumerate(result.trades[-10:], 1):
+                entry_t = t.entry_time.strftime("%Y-%m-%d %H:%M")
+                exit_t = (
+                    t.exit_time.strftime("%Y-%m-%d %H:%M") if t.exit_time else "OPEN"
+                )
+                exit_px = f"{t.exit_price:.5f}" if t.exit_price else "-"
+                pnl_str = f"{'+' if t.pnl >= 0 else ''}{t.pnl:.2f}"
+                print(
+                    header.format(
+                        i, entry_t, f"{t.entry_price:.5f}", exit_t, exit_px, pnl_str
+                    )
+                )
+            print()
+        else:
+            print("\n⚠️ No trade signals were triggered during this period.\n")
+
+    except ForexError as err:
+        logger.error(f"Backtest execution failed: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)

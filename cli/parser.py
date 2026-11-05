@@ -13,7 +13,8 @@ from cli.commands import (
     cmd_alert_list,
     cmd_alert_check,
     cmd_alert_delete,
-    cmd_cache_clear,  # <-- أضف هذا
+    cmd_cache_clear,
+    cmd_backtest,  # <-- أضف هذا
 )
 
 
@@ -195,6 +196,45 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_cache_clear = cache_sub.add_parser("clear", help="Clear all cached market data")
     p_cache_clear.set_defaults(func=cmd_cache_clear)
+
+    # 10. أمر backtest
+    p_backtest = subparsers.add_parser(
+        "backtest", help="Simulate and test trading strategies on historical data"
+    )
+    p_backtest.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_backtest.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_backtest.add_argument(
+        "--limit",
+        type=int,
+        default=100,
+        help="Number of historical candles (default: 100)",
+    )
+    p_backtest.add_argument(
+        "--fast", type=int, default=10, help="Fast SMA period (default: 10)"
+    )
+    p_backtest.add_argument(
+        "--slow", type=int, default=30, help="Slow SMA period (default: 30)"
+    )
+    p_backtest.add_argument(
+        "--capital",
+        type=float,
+        default=10000.0,
+        help="Initial account capital (default: 10000)",
+    )
+    p_backtest.add_argument(
+        "--size",
+        type=float,
+        default=10000.0,
+        help="Trade position size (default: 10000)",
+    )
+    p_backtest.set_defaults(func=cmd_backtest)
     return parser
 
 

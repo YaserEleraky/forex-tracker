@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-5%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.5.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-6%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.6.0-blue?style=flat-square)
 
 </div>
 
@@ -56,6 +56,7 @@
 | 📐 **Technical Indicators Engine** | محرك تحليلي نقي لحساب SMA, EMA, RSI, و MACD بدون مكتبات خارجية ثقيلة |
 | 🔔 **Alert Engine** | نظام تنبيهات ذكي للسعر والمؤشرات مع كشف تكرار تلقائي |
 | 🗄️ **Cache Layer** | نظام كاش مزدوج (Memory / Redis) مع Cache-Aside و Fallback تلقائي |
+| 📊 **Backtesting Engine** | محاكي استراتيجيات تاريخي مع مقاييس أداء كاملة (Win Rate, ROI, Max Drawdown, Profit Factor) |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -73,6 +74,7 @@
 | **Sprint 3 — Technical Indicators** | ✅ مكتمل | `v0.3.0` | [📄 عرض التوثيق](docs/sprint-3.md) |
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
+| **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -336,6 +338,52 @@ forex alert delete --id a1b2c3d4
 🗑️  Alert 'a1b2c3d4' deleted successfully.
 ```
 
+### 📊 اختبار الاستراتيجيات التاريخي (Backtesting)
+
+#### تشغيل باكتست استراتيجية SMA Crossover
+
+```bash
+forex backtest --pair EUR/USD --interval 1day --limit 100 --fast 10 --slow 30
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Running backtest for EUR/USD [1day] using SMA_Crossover(10/30)...
+
+========================================================
+ 📊 Backtest Report: EUR/USD [1day]
+========================================================
+Strategy      : SMA_Crossover(10/30)
+Initial Capital: $10,000.00
+Final Capital  : $10,850.50
+Total PnL     : $+850.50
+ROI           : +8.51%
+
+--- Performance Metrics ---
+Total Trades  : 8
+Winning       : 5 (62.5%)
+Losing        : 3 (37.5%)
+Win Rate      : 62.5%
+Max Drawdown  : 4.20%
+Profit Factor : 2.15
+
+--- Recent Trades (Last 3) ---
+Entry Time          | Entry      | Exit       | PnL        | Status
+-----------------------------------------------------------------------
+2026-09-15 00:00    | 1.0720     | 1.0850     | +0.0130    | ✅ WIN
+2026-09-20 00:00    | 1.0890     | 1.0810     | -0.0080    | ❌ LOSS
+2026-10-01 00:00    | 1.0760     | 1.0920     | +0.0160    | ✅ WIN
+```
+
+#### إعدادات متقدمة
+
+```bash
+# رأس مال مختلف وحجم صفقة مخصص
+forex backtest --pair GBP/USD --interval 4h --limit 200 \
+               --capital 50000 --size 25000 --fast 5 --slow 20
+```
+
 ### 🗄️ إدارة الكاش (Cache)
 
 #### عرض حالة النظام وإحصائيات الكاش
@@ -349,7 +397,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name     : Forex Tracker
-Version      : 0.5.0
+Version      : 0.6.0
 Data Dir     : ./data
 Log File     : ./logs/app.log
 Status       : Ready
@@ -386,6 +434,7 @@ forex cache clear
 | `alert list` | عرض التنبيهات | `forex alert list --active` |
 | `alert check` | فحص التنبيهات | `forex alert check` |
 | `alert delete` | حذف تنبيه | `forex alert delete --id abc12345` |
+| `backtest` | اختبار استراتيجية | `forex backtest --pair EUR/USD --fast 10 --slow 30` |
 | `cache clear` | تفريغ الكاش | `forex cache clear` |
 | `status` | حالة النظام + الكاش | `forex status` |
 | `version` | الإصدار | `forex version` |
@@ -401,9 +450,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-................................
+..................................
 ----------------------------------------------------------------------
-Ran 32 tests in 0.3xxs
+Ran 37 tests in 0.4xxs
 
 OK
 ```
@@ -418,6 +467,7 @@ OK
 | `test_indicators.py` | SMA + EMA + RSI (Wilder's Smoothing) + MACD Engine & Relations | 3 |
 | `test_alerts.py` | AlertCondition Parse/Evaluate + Alert CRUD + Trigger Idempotency | 4 |
 | `test_cache.py` | MemoryCache TTL + RedisCache Fallback + Cache-Aside Pattern | 5 |
+| `test_backtest.py` | Trade PnL + SMA Crossover Signals + Backtest Metrics (ROI, Drawdown, PF) | 6 |
 
 ---
 
@@ -441,7 +491,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, cache...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, cache...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -450,17 +500,20 @@ forex_tracker/
 │   ├── intervals.py         # الأطر الزمنية القياسية (Enum)
 │   ├── alert.py             # كائن التنبيه والشرط (Alert, AlertCondition, AlertStatus)
 │   ├── cache.py             # نظام الكاش (BaseCache + MemoryCache + RedisCache + get_cache)
+│   ├── trade.py             # كائنات الصفقات والإشارات (Trade, SignalType, TradeStatus)
+│   ├── strategy.py          # العقد التجريدي للاستراتيجيات (BaseStrategy)
 │   ├── config.py            # مدير الإعدادات (Singleton)
 │   ├── exceptions.py        # التسلسل الهرمي للأخطاء
 │   └── logger.py            # نظام السجلات
 │
 ├── docs/                    # توثيق مراحل التطوير
-│   ├── sprint_0_documentation.md
-│   ├── sprint_1_documentation.md
-│   ├── sprint_2_documentation.md
-│   ├── sprint_3_documentation.md
-│   ├── sprint_4_documentation.md
-│   └── sprint_5_documentation.md
+│   ├── sprint-0.md
+│   ├── sprint-1.md
+│   ├── sprint-2.md
+│   ├── sprint-3.md
+│   ├── sprint-4.md
+│   ├── sprint-5.md
+│   └── sprint-6.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
@@ -468,10 +521,15 @@ forex_tracker/
 │   ├── moving_averages.py   # حساب SMA و EMA بدقة Decimal
 │   └── momentum.py          # مؤشرات الزخم والاتجاه (RSI & MACD)
 │
+├── strategies/              # استراتيجيات التداول
+│   ├── __init__.py
+│   └── sma_crossover.py     # استراتيجية تقاطع SMA (Golden/Death Cross)
+│
 ├── services/                # طبقة تنسيق الأعمال (Business Logic)
 │   ├── __init__.py
 │   ├── forex_service.py     # منسق العمليات (single/multi-pair + indicators + cache)
-│   └── alert_service.py     # منسق إدارة وتقييم التنبيهات (Alert Engine)
+│   ├── alert_service.py     # منسق إدارة وتقييم التنبيهات (Alert Engine)
+│   └── backtest_service.py  # محرك المحاكاة التاريخية وحساب المقاييس
 │
 ├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
@@ -494,7 +552,8 @@ forex_tracker/
     ├── test_multi_pairs.py  # اختبارات Sprint 2
     ├── test_indicators.py   # اختبارات Sprint 3
     ├── test_alerts.py       # اختبارات Sprint 4
-    └── test_cache.py        # اختبارات Sprint 5
+    ├── test_cache.py        # اختبارات Sprint 5
+    └── test_backtest.py     # اختبارات Sprint 6
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -507,10 +566,14 @@ graph TD
     B --> H[Indicators Engine<br/>indicators/]
     B --> I[Alert Engine<br/>services/alert_service]
     B --> J[Cache Layer<br/>core/cache.py]
+    B --> K[Backtest Engine<br/>services/backtest_service]
+    B --> L[Strategies<br/>strategies/]
     B --> E[Domain Layer<br/>core/]
     H --> E
     I --> E
     J --> E
+    K --> E
+    L --> E
     C --> E
     D --> E
     F[Utils<br/>utils/] -.-> B
@@ -525,6 +588,8 @@ graph TD
     style H fill:#bdf,stroke:#333,stroke-width:2px
     style I fill:#fdd,stroke:#333,stroke-width:2px
     style J fill:#ffd,stroke:#333,stroke-width:2px
+    style K fill:#dff,stroke:#333,stroke-width:2px
+    style L fill:#fdf,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
@@ -587,6 +652,14 @@ graph TD
 <td>Fallback تلقائي من Redis إلى MemoryCache عند فشل الاتصال — Zero Downtime.</td>
 </tr>
 <tr>
+<td><b>Lookahead Prevention</b></td>
+<td>الاستراتيجية ترى <code>candles[:index+1]</code> فقط — لا بيانات مستقبلية.</td>
+</tr>
+<tr>
+<td><b>Sequential Simulation</b></td>
+<td>Backtest يمر زمنياً على الشموع مع state machine للصفقات المفتوحة/المغلقة.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -606,10 +679,10 @@ graph TD
 | **Sprint 3 — Technical Indicators** | ✅ مكتمل | `v0.3.0` | [📄 عرض التوثيق](docs/sprint-3.md) |
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
+| **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 6**: Strategy Backtesting — محاكي اختبار استراتيجيات التداول التاريخية
 - [ ] **Sprint 7**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
 - [ ] **Sprint 8**: Machine Learning (Forecasting) — نماذج التنبؤ باتجاه الأسعار
 - [ ] **Sprint 9**: Explainable AI (XAI) — طبقة تفسير قرارات النماذج الذكية
