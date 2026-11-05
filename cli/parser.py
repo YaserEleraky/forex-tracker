@@ -13,6 +13,7 @@ from cli.commands import (
     cmd_alert_list,
     cmd_alert_check,
     cmd_alert_delete,
+    cmd_cache_clear,  # <-- أضف هذا
 )
 
 
@@ -184,6 +185,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_del.add_argument("--id", type=str, required=True, help="Alert ID to delete")
     p_del.set_defaults(func=cmd_alert_delete)
 
+    # 9. أمر cache
+    p_cache = subparsers.add_parser("cache", help="Manage application cache layer")
+    cache_sub = p_cache.add_subparsers(
+        dest="cache_command",
+        title="Cache Operations",
+        description="Available cache operations",
+    )
+
+    p_cache_clear = cache_sub.add_parser("clear", help="Clear all cached market data")
+    p_cache_clear.set_defaults(func=cmd_cache_clear)
     return parser
 
 

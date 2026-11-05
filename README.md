@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-4%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.4.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-5%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.5.0-blue?style=flat-square)
 
 </div>
 
@@ -55,6 +55,7 @@
 | 🎯 **Domain Validation** | توحيد `eurusd` → `EUR/USD` والتحقق قبل استهلاك الشبكة |
 | 📐 **Technical Indicators Engine** | محرك تحليلي نقي لحساب SMA, EMA, RSI, و MACD بدون مكتبات خارجية ثقيلة |
 | 🔔 **Alert Engine** | نظام تنبيهات ذكي للسعر والمؤشرات مع كشف تكرار تلقائي |
+| 🗄️ **Cache Layer** | نظام كاش مزدوج (Memory / Redis) مع Cache-Aside و Fallback تلقائي |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -71,6 +72,7 @@
 | **Sprint 2 — Multi-Pairs & Intervals** | ✅ مكتمل | `v0.2.0` | [📄 عرض التوثيق](docs/sprint-2.md) |
 | **Sprint 3 — Technical Indicators** | ✅ مكتمل | `v0.3.0` | [📄 عرض التوثيق](docs/sprint-3.md) |
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
+| **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -98,6 +100,11 @@
 <td><b>أدوات إضافية</b></td>
 <td><code>pip</code>, <code>venv</code></td>
 <td>مدمجة مع Python 3.12</td>
+</tr>
+<tr>
+<td><b>اختياري</b></td>
+<td><code>redis</code></td>
+<td>للـ RedisCache (<code>pip install redis</code>) — بدونها يعمل <code>MemoryCache</code></td>
 </tr>
 </table>
 
@@ -329,7 +336,9 @@ forex alert delete --id a1b2c3d4
 🗑️  Alert 'a1b2c3d4' deleted successfully.
 ```
 
-### 🔍 فحص حالة النظام
+### 🗄️ إدارة الكاش (Cache)
+
+#### عرض حالة النظام وإحصائيات الكاش
 
 ```bash
 forex status
@@ -339,11 +348,29 @@ forex status
 
 ```
 --- Forex Tracker Status ---
-App Name : Forex Tracker
-Version  : 0.4.0
-Data Dir : ./data
-Log File : ./logs/app.log
-Status   : Ready
+App Name     : Forex Tracker
+Version      : 0.5.0
+Data Dir     : ./data
+Log File     : ./logs/app.log
+Status       : Ready
+
+--- Cache Performance ---
+Backend      : MEMORY
+Hits         : 1
+Misses       : 1
+Items Cached : 1
+```
+
+#### تفريغ الكاش
+
+```bash
+forex cache clear
+```
+
+**المخرجات المتوقعة:**
+
+```
+🧹 Cache has been successfully cleared.
 ```
 
 ### 📋 ملخص الأوامر
@@ -359,7 +386,8 @@ Status   : Ready
 | `alert list` | عرض التنبيهات | `forex alert list --active` |
 | `alert check` | فحص التنبيهات | `forex alert check` |
 | `alert delete` | حذف تنبيه | `forex alert delete --id abc12345` |
-| `status` | حالة النظام | `forex status` |
+| `cache clear` | تفريغ الكاش | `forex cache clear` |
+| `status` | حالة النظام + الكاش | `forex status` |
 | `version` | الإصدار | `forex version` |
 
 ---
@@ -373,9 +401,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-...........................
+................................
 ----------------------------------------------------------------------
-Ran 27 tests in 0.2xxs
+Ran 32 tests in 0.3xxs
 
 OK
 ```
@@ -389,6 +417,7 @@ OK
 | `test_multi_pairs.py` | CurrencyPair + Interval + Bulk Ingest + Watchlist + Throttling | 2 |
 | `test_indicators.py` | SMA + EMA + RSI (Wilder's Smoothing) + MACD Engine & Relations | 3 |
 | `test_alerts.py` | AlertCondition Parse/Evaluate + Alert CRUD + Trigger Idempotency | 4 |
+| `test_cache.py` | MemoryCache TTL + RedisCache Fallback + Cache-Aside Pattern | 5 |
 
 ---
 
@@ -397,7 +426,7 @@ OK
 ```
 forex_tracker/
 │
-├── config.json              # ملف الإعدادات الأساسي
+├── config.json              # ملف الإعدادات الأساسي (يشمل cache)
 ├── pyproject.toml           # إعدادات الحزمة وربط أمر forex
 ├── README.md                # توثيق المشروع
 ├── main.py                  # نقطة الدخول البديلة للتشغيل المباشر
@@ -412,7 +441,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, list, watchlist, analyze, alert...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, cache...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -420,6 +449,7 @@ forex_tracker/
 │   ├── pair.py              # كائن التحقق وتوحيد أزواج العملات
 │   ├── intervals.py         # الأطر الزمنية القياسية (Enum)
 │   ├── alert.py             # كائن التنبيه والشرط (Alert, AlertCondition, AlertStatus)
+│   ├── cache.py             # نظام الكاش (BaseCache + MemoryCache + RedisCache + get_cache)
 │   ├── config.py            # مدير الإعدادات (Singleton)
 │   ├── exceptions.py        # التسلسل الهرمي للأخطاء
 │   └── logger.py            # نظام السجلات
@@ -429,7 +459,8 @@ forex_tracker/
 │   ├── sprint_1_documentation.md
 │   ├── sprint_2_documentation.md
 │   ├── sprint_3_documentation.md
-│   └── sprint_4_documentation.md
+│   ├── sprint_4_documentation.md
+│   └── sprint_5_documentation.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
@@ -439,7 +470,7 @@ forex_tracker/
 │
 ├── services/                # طبقة تنسيق الأعمال (Business Logic)
 │   ├── __init__.py
-│   ├── forex_service.py     # منسق العمليات (single/multi-pair + indicators analysis)
+│   ├── forex_service.py     # منسق العمليات (single/multi-pair + indicators + cache)
 │   └── alert_service.py     # منسق إدارة وتقييم التنبيهات (Alert Engine)
 │
 ├── storage/                 # طبقة التخزين الدائم
@@ -462,7 +493,8 @@ forex_tracker/
     ├── test_price_mvp.py    # اختبارات Sprint 1
     ├── test_multi_pairs.py  # اختبارات Sprint 2
     ├── test_indicators.py   # اختبارات Sprint 3
-    └── test_alerts.py       # اختبارات Sprint 4
+    ├── test_alerts.py       # اختبارات Sprint 4
+    └── test_cache.py        # اختبارات Sprint 5
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -474,14 +506,17 @@ graph TD
     B --> D[Storage Layer<br/>storage/]
     B --> H[Indicators Engine<br/>indicators/]
     B --> I[Alert Engine<br/>services/alert_service]
+    B --> J[Cache Layer<br/>core/cache.py]
     B --> E[Domain Layer<br/>core/]
     H --> E
     I --> E
+    J --> E
     C --> E
     D --> E
     F[Utils<br/>utils/] -.-> B
     G[Config<br/>core/config.py] -.-> C
     G -.-> D
+    G -.-> J
     G -.-> B
 
     style A fill:#bbf,stroke:#333,stroke-width:2px
@@ -489,6 +524,7 @@ graph TD
     style E fill:#bfb,stroke:#333,stroke-width:3px
     style H fill:#bdf,stroke:#333,stroke-width:2px
     style I fill:#fdd,stroke:#333,stroke-width:2px
+    style J fill:#ffd,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
@@ -516,7 +552,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Dependency Injection</b></td>
-<td>تمرير مصادر البيانات ومحركات التخزين للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
+<td>تمرير مصادر البيانات ومحركات التخزين والكاش للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
 </tr>
 <tr>
 <td><b>Composite Key & Idempotency</b></td>
@@ -543,6 +579,14 @@ graph TD
 <td>تحديث حالة التنبيه إلى <code>TRIGGERED</code> في التخزين فوراً لمنع الإطلاق المتكرر.</td>
 </tr>
 <tr>
+<td><b>Cache-Aside Pattern</b></td>
+<td>فحص الكاش أولاً (Hit) ثم الـ API (Miss) ثم الحفظ مع TTL لحماية حصة الـ API.</td>
+</tr>
+<tr>
+<td><b>Graceful Degradation</b></td>
+<td>Fallback تلقائي من Redis إلى MemoryCache عند فشل الاتصال — Zero Downtime.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -561,10 +605,10 @@ graph TD
 | **Sprint 2 — Multi-Pairs & Intervals** | ✅ مكتمل | `v0.2.0` | [📄 عرض التوثيق](docs/sprint-2.md) |
 | **Sprint 3 — Technical Indicators** | ✅ مكتمل | `v0.3.0` | [📄 عرض التوثيق](docs/sprint-3.md) |
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
+| **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 5**: Caching & Performance — التخزين المؤقت عبر Redis وتقليل استهلاك الحصة
 - [ ] **Sprint 6**: Strategy Backtesting — محاكي اختبار استراتيجيات التداول التاريخية
 - [ ] **Sprint 7**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
 - [ ] **Sprint 8**: Machine Learning (Forecasting) — نماذج التنبؤ باتجاه الأسعار

@@ -400,3 +400,36 @@ def cmd_alert_delete(args: argparse.Namespace) -> None:
         logger.error(f"فشل حذف التنبيه: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)
+
+
+def cmd_status(args: argparse.Namespace) -> None:
+    """عرض الحالة التشغيلية للنظام وإحصائيات الكاش."""
+    config = Config()
+    service = ForexService()
+    cache_stats = service.get_cache_stats()
+
+    print("\n--- Forex Tracker Status ---")
+    print(f"App Name     : {config.get('app_name', 'Forex Tracker')}")
+    print(f"Version      : {config.get('version', '0.3.0')}")
+    print(f"Data Dir     : {config.get('data_dir', './data')}")
+    print(f"Log File     : {config.get('log_file', './logs/app.log')}")
+    print(f"Status       : Ready")
+
+    print("\n--- Cache Performance ---")
+    print(f"Backend      : {cache_stats.get('backend', 'memory').upper()}")
+    print(f"Hits         : {cache_stats.get('hits', 0)}")
+    print(f"Misses       : {cache_stats.get('misses', 0)}")
+    print(f"Items Cached : {cache_stats.get('items_count', 0)}")
+    print()
+
+
+def cmd_cache_clear(args: argparse.Namespace) -> None:
+    """تفريغ بيانات الكاش بالكامل."""
+    service = ForexService()
+    try:
+        service.clear_cache()
+        print("\n🧹 Cache has been successfully cleared.\n")
+    except ForexError as err:
+        logger.error(f"فشل مسح الكاش: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)

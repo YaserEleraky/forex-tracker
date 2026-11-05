@@ -1,6 +1,6 @@
 """
 services/forex_service.py
-منسق عمليات الفوركس مع دعم حساب المؤشرات الفنية.
+منسق عمليات الفوركس مع دعم طبقة الكاش (Cache-Aside) لحماية حصة الـ API.
 """
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any
 
 from api.sources.twelvedata import TwelveDataSource
+from core.cache import BaseCache, get_cache
 from core.candle import Candle
 from core.intervals import Interval
 from core.logger import logger
@@ -20,26 +21,48 @@ from storage.sqlite_storage import SQLiteStorage
 
 
 class ForexService:
-    """خدمة إدارة أسواق الفوركس والتنسيق بين مصادر البيانات، التخزين، والتحليل الفني."""
+    """خدمة إدارة أسواق الفوركس والتنسيق بين الشبكة، التخزين، الكاش، والتحليل الفني."""
 
     def __init__(
         self,
         source: TwelveDataSource | None = None,
         storage: Storage | None = None,
+        cache: BaseCache | None = None,
         rate_limit_delay: float = 1.0,
     ) -> None:
         self.source = source or TwelveDataSource()
         self.storage = storage or SQLiteStorage()
+        self.cache = cache or get_cache()
         self.rate_limit_delay = rate_limit_delay
 
     def get_current_price(self, pair: str = "EUR/USD") -> Decimal:
-        """جلب السعر الحالي اللحظي لزوج عملات بعد التحقق من صحته."""
+        """
+        جلب السعر اللحظي لزوج عملات مع تطبيق نمط Cache-Aside.
+        """
         validated_pair = CurrencyPair.from_string(pair)
-        logger.info(f"طلب السعر اللحظي لزوج {validated_pair.symbol}...")
+        cache_key = f"price:{validated_pair.symbol}"
+
+        # 1. فحص الكاش أولاً
+        cached_price = self.cache.get(cache_key)
+        if cached_price is not None:
+            logger.info(
+                f"⚡ [Cache Hit] السعر موجود في الكاش لزوج {validated_pair.symbol}: {cached_price}"
+            )
+            return Decimal(str(cached_price))
+
+        # 2. في حالة عدم الوجود (Cache Miss) نطلب من الـ API
+        logger.info(
+            f"🌐 [Cache Miss] جلب السعر من TwelveData لزوج {validated_pair.symbol}..."
+        )
         candles = self.source.fetch_candles(pair=validated_pair.symbol, limit=1)
         if not candles:
             raise ValueError(f"تعذر جلب السعر لزوج {validated_pair.symbol}")
-        return candles[0].close
+
+        latest_price = candles[0].close
+
+        # 3. حفظ السعر في الكاش لمدة 60 ثانية
+        self.cache.set(cache_key, str(latest_price), ttl=60)
+        return latest_price
 
     def fetch_and_store(
         self,
@@ -135,13 +158,10 @@ class ForexService:
         limit: int = 50,
         indicators: list[str] | None = None,
     ) -> dict[str, Any]:
-        """
-        تحليل الشموع المخزنة لزوج معين وحساب المؤشرات المطلوبة.
-        """
+        """تحليل الشموع المخزنة لزوج معين وحساب المؤشرات المطلوبة."""
         validated_pair = CurrencyPair.from_string(pair)
         validated_interval = Interval.from_str(interval)
 
-        # 1. جلب الشموع المخزنة محلياً
         candles = self.storage.get_candles(
             pair=validated_pair.symbol,
             interval=validated_interval.value,
@@ -151,7 +171,6 @@ class ForexService:
         if not candles:
             return {"pair": validated_pair.symbol, "candles_count": 0, "results": {}}
 
-        # فرز تصاعدي زمني للحسابات الدقيقة
         candles_sorted = sorted(candles, key=lambda c: c.timestamp)
         requested_indicators = [
             ind.strip().lower() for ind in (indicators or ["sma", "rsi", "macd"])
@@ -159,7 +178,6 @@ class ForexService:
 
         indicator_outputs: dict[str, Any] = {}
 
-        # 2. حساب المؤشرات المطلوبة
         if "sma" in requested_indicators:
             indicator_outputs["sma_20"] = SMA(period=20).calculate(candles_sorted)
 
@@ -181,3 +199,12 @@ class ForexService:
             "latest_candle": candles_sorted[-1],
             "indicators": indicator_outputs,
         }
+
+    def get_cache_stats(self) -> dict[str, Any]:
+        """إرجاع إحصائيات الكاش الحالية."""
+        return self.cache.stats()
+
+    def clear_cache(self) -> None:
+        """مسح بيانات الكاش بالكامل."""
+        self.cache.clear()
+        logger.info("ForexService cache cleared.")

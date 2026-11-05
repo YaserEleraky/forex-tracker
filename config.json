@@ -3,5 +3,10 @@
     "version": "0.1.0",
     "data_dir": "./data",
     "log_file": "./logs/app.log",
-    "twelvedata_api_key": "demo"
+    "twelvedata_api_key": "demo",
+    "cache": {
+        "backend": "redis",
+        "redis_url": "redis://localhost:6379/0",
+        "default_ttl": 60
+    }
 }
