@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-9%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.9.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-10%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat-square)
 
 </div>
 
@@ -26,6 +26,7 @@
 - [الاختبارات](#-تشغيل-اختبارات-الوحدة)
 - [هيكل المشروع](#-هيكل-المشروع-الحالي)
 - [المعمارية ومبادئ التصميم](#️-المعمارية-ومبادئ-التصميم)
+- [Docker والنشر](#-docker-والنشر)
 - [خارطة الطريق](#️-خارطة-الطريق-roadmap)
 - [المساهمة](#-المساهمة)
 - [الترخيص](#-الترخيص)
@@ -42,6 +43,7 @@
 - 🤖 استخدام نماذج التعلم الآلي للتنبؤ بالاتجاهات.
 - 🔍 تقديم تفسيرات واضحة لقرارات النماذج (Explainable AI).
 - 🧠 اتخاذ قرارات تداول مبنية على **توافق إشارات متعددة** (Multi-Signal Confluence).
+- 🐳 **النشر في حاويات Docker** مع مهام خلفية مجدولة (Background Tasks).
 
 ### ✨ المميزات الأساسية
 
@@ -61,6 +63,7 @@
 | 🤖 **ML Forecasting** | تنبؤات احتمالية باتجاه السعر باستخدام Logistic Regression مع Time-Series Split (بدون تسريب بيانات) |
 | 🔍 **XAI (Explainable AI)** | تفسير كل قرار تنبؤ: أي المؤشرات دفعت الصعود/الهبوط، بأي قوة، ولماذا |
 | 🧠 **AI Agent** | وكيل ذكي يدمج المؤشرات + ML + XAI لتوليد توصية تداول مع درجة ثقة وسرد تفسيري |
+| 🐳 **Docker & Scheduler** | حاويات نشر + مهام خلفية مجدولة (Alerts + Forecasts) تلقائياً |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -82,6 +85,7 @@
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 | **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
 | **Sprint 9 — Forex AI Agent** | ✅ مكتمل | `v0.9.0` | [📄 عرض التوثيق](docs/sprint-9.md) |
+| **Sprint 11** - Risk Management** | ✅ مكتمل | `v1.0.0` | [📄 عرض التوثيق](docs/sprint-10.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -114,6 +118,16 @@
 <td><b>مكتبة ML</b></td>
 <td><code>scikit-learn</code></td>
 <td>مطلوبة للتنبؤات (<code>pip install scikit-learn</code>)</td>
+</tr>
+<tr>
+<td><b>Docker</b></td>
+<td>24.0+</td>
+<td>للنشر في حاويات</td>
+</tr>
+<tr>
+<td><b>Docker Compose</b></td>
+<td>2.20+</td>
+<td>لتشغيل الخدمات المتعددة</td>
 </tr>
 <tr>
 <td><b>اختياري</b></td>
@@ -162,6 +176,19 @@ pip install -e .
 ```bash
 pip install scikit-learn
 ```
+
+### 5️⃣ إعداد متغيرات البيئة
+
+أنشئ ملف `.env` في جذر المشروع:
+
+```env
+TWELVEDATA_API_KEY=your_api_key_here
+CACHE_BACKEND=memory
+REDIS_URL=redis://localhost:6379/0
+LOG_LEVEL=INFO
+```
+
+> 💡 **ملاحظة**: يمكنك نسخ `.env.example` → `.env` وتعديل القيم.
 
 ---
 
@@ -430,18 +457,6 @@ tactical posture is to WAIT with 50% confidence.
 
 > 💡 **ملاحظة**: الوكيل يُرجع **WAIT** عندما تكون الإشارات مختلطة أو غير كافية — الانتظار قرار استثماري محوري.
 
-#### إعدادات متقدمة
-
-```bash
-# جلب المزيد من البيانات لدقة أفضل
-forex fetch --pair GBP/USD --interval 1day --limit 300
-forex agent analyze --pair GBP/USD --interval 1day --limit 300
-```
-
-> 💡 **ملاحظة**: الوكيل يحتاج **60 شمعة على الأقل** (للـ ML model). استخدم `forex fetch` أولاً.
-
----
-
 ### 🔔 إدارة التنبيهات (Alerts)
 
 #### إضافة تنبيه سعري
@@ -520,8 +535,6 @@ forex alert delete --id a1b2c3d4
 
 ### 📊 اختبار الاستراتيجيات التاريخي (Backtesting)
 
-#### تشغيل باكتست استراتيجية SMA Crossover
-
 ```bash
 forex backtest --pair EUR/USD --interval 1day --limit 100 --fast 10 --slow 30
 ```
@@ -577,7 +590,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name     : Forex Tracker
-Version      : 0.9.0
+Version      : 1.0.0
 Data Dir     : ./data
 Log File     : ./logs/app.log
 Status       : Ready
@@ -601,6 +614,34 @@ forex cache clear
 🧹 Cache has been successfully cleared.
 ```
 
+### ⚙️ المهام الخلفية المجدولة (Background Scheduler)
+
+#### تشغيل الـ Scheduler يدوياً
+
+```bash
+forex scheduler run --interval 300
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Starting background scheduler (every 300s)...
+[2026-10-10 14:35:00] ✓ Checked 2 alerts. Triggered: 0
+[2026-10-10 14:40:00] ✓ Checked 2 alerts. Triggered: 1
+[2026-10-10 14:45:00] ✓ Forecast for EUR/USD: UP (62.5%)
+...
+^C
+⏹️ Scheduler stopped gracefully.
+```
+
+#### تشغيل دورة واحدة (One-shot)
+
+```bash
+forex scheduler run --once
+```
+
+> 💡 **ملاحظة**: `--once` مفيد في **cron jobs** — يُنفّذ دورة واحدة ثم يخرج.
+
 ### 📋 ملخص الأوامر
 
 | الأمر | الوصف | مثال |
@@ -618,9 +659,82 @@ forex cache clear
 | `alert check` | فحص التنبيهات | `forex alert check` |
 | `alert delete` | حذف تنبيه | `forex alert delete --id abc12345` |
 | `backtest` | اختبار استراتيجية | `forex backtest --pair EUR/USD --fast 10 --slow 30` |
+| **`scheduler run`** | **تشغيل المهام الخلفية** | **`forex scheduler run --interval 300`** |
 | `cache clear` | تفريغ الكاش | `forex cache clear` |
 | `status` | حالة النظام + الكاش | `forex status` |
 | `version` | الإصدار | `forex version` |
+
+---
+
+## 🐳 Docker والنشر
+
+### البنية
+
+```
+┌─────────────────────────────────────────┐
+│  Docker Compose                          │
+│                                          │
+│  ┌──────────┐    ┌──────────┐    ┌──────┐│
+│  │  forex   │    │scheduler │    │redis ││
+│  │  (CLI)   │    │(worker)  │    │      ││
+│  └────┬─────┘    └────┬─────┘    └──┬───┘│
+│       │               │              │   │
+│       └───────────────┴──────────────┘   │
+│                shared volume             │
+│              ./data/candles.db            │
+└─────────────────────────────────────────┘
+```
+
+### 1️⃣ بناء صورة Docker
+
+```bash
+docker build -t forex-tracker:latest .
+```
+
+### 2️⃣ تشغيل CLI عبر Docker
+
+```bash
+docker run --rm -it \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/logs:/app/logs \
+  -e TWELVEDATA_API_KEY=your_key \
+  forex-tracker:latest price --pair EUR/USD
+```
+
+### 3️⃣ تشغيل عبر Docker Compose
+
+```bash
+docker compose up -d
+```
+
+**الخدمات:**
+
+| الخدمة | الوصف | المنفذ |
+| -------- | ------- | -------- |
+| **forex-cli** | حاوية CLI تفاعلية | — |
+| **scheduler** | مهام خلفية (alerts + forecasts) | — |
+| **redis** | كاش Redis اختياري | `6379` |
+
+### 4️⃣ تشغيل المهام الخلفية
+
+```bash
+docker compose logs -f scheduler
+```
+
+**المخرجات المتوقعة:**
+
+```
+scheduler-1  | [2026-10-10 14:35:00] ✓ Checked 2 alerts. Triggered: 0
+scheduler-1  | [2026-10-10 14:40:00] ✓ Forecast for EUR/USD: UP (62.5%)
+```
+
+### 5️⃣ إيقاف الخدمات
+
+```bash
+docker compose down
+```
+
+> 💡 **ملاحظة**: `docker-compose.yml` يحتوي على **health checks** لكل خدمة، و**restart policy** (`unless-stopped`) لضمان استمرارية التشغيل.
 
 ---
 
@@ -633,9 +747,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-..............................................
+....................................................
 ----------------------------------------------------------------------
-Ran 60 tests in 0.7xxs
+Ran 68 tests in 0.8xxs
 
 OK
 ```
@@ -654,6 +768,7 @@ OK
 | `test_forecast.py` | FeatureExtractor + LogisticForecaster Training + Prediction + Time-Series Split | 7 |
 | `test_xai.py` | Feature Weights + PredictionExplainer + Bullish/Bearish Split + Global Importance | 8 |
 | `test_agent.py` | ForexAgent Orchestration + Signal Confluence + Action Recommendation + Confidence | 9 |
+| `test_scheduler.py` | Scheduler Loop + One-shot Mode + Graceful Shutdown + Task Execution | 10 |
 
 ---
 
@@ -662,10 +777,14 @@ OK
 ```
 forex_tracker/
 │
-├── config.json              # ملف الإعدادات الأساسي (يشمل cache)
+├── config.json              # ملف الإعدادات الأساسي (يشمل cache + scheduler)
 ├── pyproject.toml           # إعدادات الحزمة وربط أمر forex
 ├── README.md                # توثيق المشروع
 ├── main.py                  # نقطة الدخول البديلة للتشغيل المباشر
+├── Dockerfile               # صورة Docker للحزمة
+├── docker-compose.yml       # تنسيق الخدمات (CLI + Scheduler + Redis)
+├── .env.example             # نموذج متغيرات البيئة
+├── .dockerignore            # استثناءات Docker
 │
 ├── agent/                   # الوكيل الذكي (AI Agent)
 │   ├── __init__.py
@@ -681,7 +800,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, forecast, agent...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, forecast, agent, scheduler...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -706,7 +825,8 @@ forex_tracker/
 │   ├── sprint-6.md
 │   ├── sprint-7.md
 │   ├── sprint-8.md
-│   └── sprint-9.md
+│   ├── sprint-9.md
+│   └── sprint-10.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
@@ -722,6 +842,10 @@ forex_tracker/
 │       ├── __init__.py
 │       ├── base.py          # العقد التجريدي (BaseForecaster)
 │       └── logistic.py      # نموذج Logistic Regression (LogisticForecaster)
+│
+├── scheduler/               # المهام الخلفية المجدولة (Background Scheduler)
+│   ├── __init__.py
+│   └── task_runner.py       # TaskRunner: حلقة مهام دورية + one-shot mode
 │
 ├── strategies/              # استراتيجيات التداول
 │   ├── __init__.py
@@ -759,7 +883,8 @@ forex_tracker/
     ├── test_backtest.py     # اختبارات Sprint 6
     ├── test_forecast.py     # اختبارات Sprint 7
     ├── test_xai.py          # اختبارات Sprint 8
-    └── test_agent.py        # اختبارات Sprint 9
+    ├── test_agent.py        # اختبارات Sprint 9
+    └── test_scheduler.py    # اختبارات Sprint 10
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -768,8 +893,10 @@ forex_tracker/
 graph TD
     A[CLI Layer<br/>cli/] --> B[Service Layer<br/>services/]
     A --> P[Agent Layer<br/>agent/]
+    A --> S[Scheduler<br/>scheduler/]
     
     P --> B
+    S --> B
     
     B --> C[API Layer<br/>api/]
     B --> D[Storage Layer<br/>storage/]
@@ -798,6 +925,7 @@ graph TD
 
     style A fill:#bbf,stroke:#333,stroke-width:2px
     style P fill:#fbf,stroke:#333,stroke-width:3px
+    style S fill:#ffe,stroke:#333,stroke-width:2px
     style B fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#bfb,stroke:#333,stroke-width:3px
     style H fill:#bdf,stroke:#333,stroke-width:2px
@@ -814,13 +942,14 @@ graph TD
 
 > **القاعدة الذهبية**: الاعتماد يتدفق **للداخل فقط**:
 >
-> `CLI → Agent → Services → Domain`
+> `CLI / Scheduler → Agent → Services → Domain`
 >
 > **لا عكس أبداً.** `Domain` لا يعرف من يستخدمه.
 
 | الطبقة | المسؤولية | تعتمد على |
 | -------- | ----------- | ----------- |
-| **CLI** | تحليل المدخلات → Dispatch | Agent / Services |
+| **CLI** | تحليل المدخلات → Dispatch | Agent / Services / Scheduler |
+| **Scheduler** | تشغيل دوري للمهام | Services |
 | **Agent** | قرارات عليا — يجمع Services | Services |
 | **Services** | تنسيق — يجمع API / DB / ML | Domain + Infrastructure |
 | **Domain** | حقائق — `Candle`, `Trade`, `Alert`, `Pair` | لا شيء (مستقل) |
@@ -837,7 +966,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Clean Architecture</b></td>
-<td>فصل طبقات النواة (Domain) والخدمات (Services) والوكيل (Agent) عن واجهات الـ CLI وقواعد البيانات.</td>
+<td>فصل طبقات النواة (Domain) والخدمات (Services) والوكيل (Agent) والـ Scheduler عن واجهات الـ CLI وقواعد البيانات.</td>
 </tr>
 <tr>
 <td><b>Immutable Value Objects</b></td>
@@ -849,7 +978,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Dependency Injection</b></td>
-<td>تمرير مصادر البيانات ومحركات التخزين والكاش والنماذج والخدمات للوكيل لتسهيل عزل الاختبارات.</td>
+<td>تمرير مصادر البيانات ومحركات التخزين والكاش والنماذج والخدمات للوكيل والـ Scheduler لتسهيل عزل الاختبارات.</td>
 </tr>
 <tr>
 <td><b>Composite Key & Idempotency</b></td>
@@ -924,6 +1053,14 @@ graph TD
 <td>الوكيل يُرجع <code>narrative</code> سردي بجانب الأرقام — للمتداول غير التقني.</td>
 </tr>
 <tr>
+<td><b>Graceful Scheduler Shutdown</b></td>
+<td>Scheduler يستقبل <code>SIGINT/SIGTERM</code> ويُكمل الدورة الحالية قبل الإيقاف — لا مهام مقطوعة.</td>
+</tr>
+<tr>
+<td><b>12-Factor App</b></td>
+<td>الإعدادات من <code>.env</code> + <code>Docker</code> + <code>docker-compose</code> — قابل للنشر في أي بيئة.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -947,11 +1084,11 @@ graph TD
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 | **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
 | **Sprint 9 — Forex AI Agent** | ✅ مكتمل | `v0.9.0` | [📄 عرض التوثيق](docs/sprint-9.md) |
+| **Sprint 11** - Risk Management** | ✅ مكتمل | `v1.0.0` | [📄 عرض التوثيق](docs/sprint-10.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 10**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
-- [ ] **Sprint 11**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
+- [ ] **Sprint 10 — Docker & Background Tasks**
 - [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة
 
 ## 📄 الترخيص

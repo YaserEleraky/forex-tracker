@@ -596,6 +596,7 @@ def cmd_forecast(args: argparse.Namespace) -> None:
 
 
 from agent.market_agent import ForexAgent
+from services.risk_service import RiskService
 
 
 def cmd_agent_analyze(args: argparse.Namespace) -> None:
@@ -645,5 +646,61 @@ def cmd_agent_analyze(args: argparse.Namespace) -> None:
 
     except ForexError as err:
         logger.error(f"Agent analysis failed: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_risk_calculate(args: argparse.Namespace) -> None:
+    """حساب إدارة المخاطر وتحديد حجم العقود المناسب للحساب."""
+    pair = getattr(args, "pair", "EUR/USD")
+    balance = Decimal(str(getattr(args, "balance", 10000.0)))
+    risk_pct = Decimal(str(getattr(args, "risk_pct", 1.0)))
+
+    entry = Decimal(str(args.entry)) if getattr(args, "entry", None) is not None else None
+    sl = Decimal(str(args.stop_loss)) if getattr(args, "stop_loss", None) is not None else None
+    tp = Decimal(str(args.take_profit)) if getattr(args, "take_profit", None) is not None else None
+    sl_pips = Decimal(str(args.sl_pips)) if getattr(args, "sl_pips", None) is not None else None
+    tp_pips = Decimal(str(args.tp_pips)) if getattr(args, "tp_pips", None) is not None else None
+
+    service = RiskService()
+
+    try:
+        print(f"\n🛡️ Calculating Position Size & Risk Plan for {pair}...")
+        plan = service.calculate_plan(
+            pair=pair,
+            account_balance=balance,
+            risk_pct=risk_pct,
+            entry=entry,
+            stop_loss=sl,
+            take_profit=tp,
+            sl_pips=sl_pips,
+            tp_pips=tp_pips,
+        )
+
+        rr_display = f"1 : {plan.risk_reward_ratio}" if plan.risk_reward_ratio else "N/A"
+        tp_price_display = f"{plan.take_profit_price:.5f}" if plan.take_profit_price else "Not Set"
+        tp_pips_display = f"{plan.take_profit_pips} pips" if plan.take_profit_pips else "N/A"
+
+        print("\n" + "=" * 65)
+        print(f"💼 RISK MANAGEMENT & POSITION SIZING: {plan.pair}")
+        print("=" * 65)
+        print(f"  • Account Balance     : ${plan.account_balance:,.2f}")
+        print(f"  • Risk Exposure       : {plan.risk_percentage:.1f}% (${plan.risk_amount:,.2f})")
+        print(f"  • Pip Value (Std Lot) : ${plan.pip_value_per_standard_lot:.2f}")
+        print("-" * 65)
+        print(f"  • Entry Price         : {plan.entry_price:.5f}")
+        print(f"  • Stop Loss Price     : {plan.stop_loss_price:.5f} ({plan.stop_loss_pips} pips)")
+        print(f"  • Take Profit Price   : {tp_price_display} ({tp_pips_display})")
+        print(f"  • Risk-to-Reward (R:R): {rr_display}")
+        print("-" * 65)
+        print("📦 RECOMMENDED POSITION SIZES:")
+        print(f"  • Standard Lots (1.0) : {plan.standard_lots}  (~{plan.units:,} units)")
+        print(f"  • Mini Lots     (0.1) : {plan.mini_lots}")
+        print(f"  • Micro Lots   (0.01) : {plan.micro_lots}")
+        print("=" * 65)
+        print("💡 Trading Rule: Never risk more than 1-2% of your capital on a single trade.\n")
+
+    except ForexError as err:
+        logger.error(f"Risk calculation failed: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)

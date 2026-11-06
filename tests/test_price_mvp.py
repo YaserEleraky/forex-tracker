@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock
 
+from core.cache import MemoryCache
 from core.candle import Candle
 from core.exceptions import ValidationError
 from services.forex_service import ForexService
@@ -88,7 +89,7 @@ class TestForexService(unittest.TestCase):
     def setUp(self):
         self.mock_source = MagicMock()
         self.storage = SQLiteStorage(db_path=":memory:")
-        self.service = ForexService(source=self.mock_source, storage=self.storage)
+        self.service = ForexService(source=self.mock_source, storage=self.storage, cache=MemoryCache())
 
     def tearDown(self):
         self.storage.disconnect()

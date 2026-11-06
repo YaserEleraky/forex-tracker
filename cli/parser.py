@@ -16,7 +16,8 @@ from cli.commands import (
     cmd_cache_clear,
     cmd_backtest,
     cmd_forecast,
-    cmd_agent_analyze,  # <-- أضف هذا
+    cmd_agent_analyze,
+    cmd_risk_calculate,
 )
 
 
@@ -293,6 +294,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="Lookback candle depth for training and indicators (default: 120)",
     )
     p_agent_analyze.set_defaults(func=cmd_agent_analyze)
+
+    # 13. أمر risk
+    p_risk = subparsers.add_parser("risk", help="Risk management and position sizing calculator")
+    risk_sub = p_risk.add_subparsers(
+        dest="risk_command",
+        title="Risk Operations",
+        description="Available risk management commands",
+    )
+
+    p_risk_calc = risk_sub.add_parser("calc", help="Calculate exact position lot sizes and R:R")
+    p_risk_calc.add_argument("--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)")
+    p_risk_calc.add_argument("--balance", type=float, default=10000.0, help="Account balance in USD (default: 10000)")
+    p_risk_calc.add_argument("--risk-pct", type=float, default=1.0, dest="risk_pct", help="Risk percentage of account (default: 1.0%)")
+    p_risk_calc.add_argument("--entry", type=float, default=None, help="Entry price (default: live market price)")
+    p_risk_calc.add_argument("--stop-loss", type=float, default=None, dest="stop_loss", help="Stop loss price")
+    p_risk_calc.add_argument("--take-profit", type=float, default=None, dest="take_profit", help="Take profit price")
+    p_risk_calc.add_argument("--sl-pips", type=float, default=None, dest="sl_pips", help="Stop loss distance in pips")
+    p_risk_calc.add_argument("--tp-pips", type=float, default=None, dest="tp_pips", help="Take profit distance in pips")
+    p_risk_calc.set_defaults(func=cmd_risk_calculate)
+
     return parser
 
 
