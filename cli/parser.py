@@ -15,7 +15,8 @@ from cli.commands import (
     cmd_alert_delete,
     cmd_cache_clear,
     cmd_backtest,
-    cmd_forecast,  # <-- أضف هذا
+    cmd_forecast,
+    cmd_agent_analyze,  # <-- أضف هذا
 )
 
 
@@ -257,9 +258,41 @@ def build_parser() -> argparse.ArgumentParser:
         help="Historical lookback candles for training (default: 150)",
     )
     p_forecast.add_argument(
-        "--explain", action="store_true", help="Explain model prediction factors using XAI"
+        "--explain",
+        action="store_true",
+        help="Explain model prediction factors using XAI",
     )
     p_forecast.set_defaults(func=cmd_forecast)
+
+    # 12. أمر agent
+    p_agent = subparsers.add_parser(
+        "agent", help="Autonomous AI Market Agent for multi-signal analysis"
+    )
+    agent_sub = p_agent.add_subparsers(
+        dest="agent_command",
+        title="Agent Operations",
+        description="Available agent tasks",
+    )
+
+    p_agent_analyze = agent_sub.add_parser(
+        "analyze", help="Perform comprehensive multi-signal market evaluation"
+    )
+    p_agent_analyze.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_agent_analyze.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_agent_analyze.add_argument(
+        "--limit",
+        type=int,
+        default=120,
+        help="Lookback candle depth for training and indicators (default: 120)",
+    )
+    p_agent_analyze.set_defaults(func=cmd_agent_analyze)
     return parser
 
 

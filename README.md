@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-8%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.8.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-9%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.9.0-blue?style=flat-square)
 
 </div>
 
@@ -41,12 +41,13 @@
 - 📊 تحليل الأسواق وتتبع الشموع السعرية بدقة مالية عالية.
 - 🤖 استخدام نماذج التعلم الآلي للتنبؤ بالاتجاهات.
 - 🔍 تقديم تفسيرات واضحة لقرارات النماذج (Explainable AI).
+- 🧠 اتخاذ قرارات تداول مبنية على **توافق إشارات متعددة** (Multi-Signal Confluence).
 
 ### ✨ المميزات الأساسية
 
 | الميزة | الوصف |
 | -------- | ------- |
-| 🏗️ **Clean Architecture** | فصل تام بين الطبقات (Domain / Services / CLI / Storage) |
+| 🏗️ **Clean Architecture** | فصل تام بين الطبقات (Domain / Services / Agent / CLI / Storage) |
 | 💰 **دقة مالية** | استخدام `Decimal` بدلاً من `float` لتجنب أخطاء التقريب |
 | 🔒 **Immutable Objects** | حماية بيانات الشموع من التعديل العرضي |
 | 🔌 **Adapter Pattern** | سهولة استبدال مزودي البيانات (TwelveData → أي مصدر آخر) |
@@ -59,6 +60,7 @@
 | 📊 **Backtesting Engine** | محاكي استراتيجيات تاريخي مع مقاييس أداء كاملة (Win Rate, ROI, Max Drawdown, Profit Factor) |
 | 🤖 **ML Forecasting** | تنبؤات احتمالية باتجاه السعر باستخدام Logistic Regression مع Time-Series Split (بدون تسريب بيانات) |
 | 🔍 **XAI (Explainable AI)** | تفسير كل قرار تنبؤ: أي المؤشرات دفعت الصعود/الهبوط، بأي قوة، ولماذا |
+| 🧠 **AI Agent** | وكيل ذكي يدمج المؤشرات + ML + XAI لتوليد توصية تداول مع درجة ثقة وسرد تفسيري |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -79,6 +81,7 @@
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 | **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
+| **Sprint 9 — Forex AI Agent** | ✅ مكتمل | `v0.9.0` | [📄 عرض التوثيق](docs/sprint-9.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -272,7 +275,7 @@ Timestamp         | Close      | SMA(20)    | RSI(14)    | MACD (Hist)
 ---------------------------------------------------------------------------
 2026-10-10 10:00  | 1.0815     | 1.0782     | 54.12      | 0.00031           
 2026-10-10 11:00  | 1.0822     | 1.0786     | 55.40      | 0.00035           
-2026-10-10 12:00     | 1.0830     | 1.0789     | 56.81      | 0.00039           
+2026-10-10 12:00  | 1.0830     | 1.0789     | 56.81      | 0.00039           
 2026-10-10 13:00  | 1.0838     | 1.0792     | 57.95      | 0.00041           
 2026-10-10 14:00  | 1.0842     | 1.0795     | 58.42      | 0.00044           
 ```
@@ -352,17 +355,90 @@ Test Samples  : 24
 ========================================================
 ```
 
-> 💡 **ملاحظة**: راية `--explain` تُظهر **لماذا** اتخذ النموذج هذا القرار — أي المؤشرات دفعته صعوداً (Bullish) وأيها هبوطاً (Bearish)، بالإضافة إلى **الأهمية الشاملة** لكل ميزة في النموذج.
+### 🤖 الوكيل الذكي — تحليل السوق والتوصية (AI Agent)
+
+```bash
+forex agent analyze --pair EUR/USD --interval 1day --limit 120
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Agent is analyzing market data for EUR/USD [1day]...
+
+========================================================
+ 🤖 Forex AI Agent — Market Analysis
+========================================================
+Pair          : EUR/USD [1day]
+Current Price : 1.0842
+Market Regime : Bullish Expansion
+
+📊 Technical Bias : BULLISH
+🤖 ML Bias        : UP
+
+💡 Recommended Action : 🟢 BUY (Confidence: 82%)
+
+--- Key Reasons ---
+  1. Price (1.08420) is trading above 20-period SMA (1.07950).
+  2. RSI shows positive momentum at 58.4.
+  3. MACD Histogram is positive (+0.00044).
+  4. ML Model predicts UP direction with 62.5% probability.
+  5. Top XAI Driver: RSI (Normalized) is supporting upward movement.
+
+--- Narrative ---
+Market for EUR/USD is currently in a Bullish Expansion.
+Technical indicators lean bullish, while the predictive ML
+model signals UP. Given the confluence of signals, the
+recommended tactical posture is to BUY with 82% confidence.
+========================================================
+```
+
+#### حالة WAIT — مثال على إشارات مختلطة
+
+```bash
+forex agent analyze --pair GBP/USD --interval 4h
+```
+
+**المخرجات المتوقعة:**
+
+```
+========================================================
+ 🤖 Forex AI Agent — Market Analysis
+========================================================
+Pair          : GBP/USD [4h]
+Current Price : 1.2515
+Market Regime : Consolidation / Mixed Signals
+
+📊 Technical Bias : NEUTRAL
+🤖 ML Bias        : DOWN
+
+💡 Recommended Action : ⏸️ WAIT (Confidence: 50%)
+
+--- Key Reasons ---
+  1. Price (1.25150) is trading above 20-period SMA (1.24800).
+  2. RSI shows weak momentum at 45.2.
+  3. MACD Histogram is negative (-0.00012).
+  4. ML Model probability is neutral (52.1% UP).
+
+--- Narrative ---
+Market for GBP/USD is currently in a Consolidation / Mixed Signals.
+Technical indicators lean neutral, while the predictive ML model
+signals DOWN. Given the confluence of signals, the recommended
+tactical posture is to WAIT with 50% confidence.
+========================================================
+```
+
+> 💡 **ملاحظة**: الوكيل يُرجع **WAIT** عندما تكون الإشارات مختلطة أو غير كافية — الانتظار قرار استثماري محوري.
 
 #### إعدادات متقدمة
 
 ```bash
 # جلب المزيد من البيانات لدقة أفضل
 forex fetch --pair GBP/USD --interval 1day --limit 300
-forex forecast --pair GBP/USD --interval 1day --limit 300 --explain
+forex agent analyze --pair GBP/USD --interval 1day --limit 300
 ```
 
-> 💡 **ملاحظة**: يتطلب النموذج **60 شمعة على الأقل** (المخزنة محلياً). استخدم `forex fetch` أولاً.
+> 💡 **ملاحظة**: الوكيل يحتاج **60 شمعة على الأقل** (للـ ML model). استخدم `forex fetch` أولاً.
 
 ---
 
@@ -501,7 +577,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name     : Forex Tracker
-Version      : 0.8.0
+Version      : 0.9.0
 Data Dir     : ./data
 Log File     : ./logs/app.log
 Status       : Ready
@@ -536,6 +612,7 @@ forex cache clear
 | `analyze` | تحليل فني ومؤشرات | `forex analyze --pair EUR/USD --interval 1day` |
 | **`forecast`** | **تنبؤ ML باتجاه السعر** | **`forex forecast --pair EUR/USD`** |
 | **`forecast --explain`** | **تنبؤ + تفسير XAI** | **`forex forecast --pair EUR/USD --explain`** |
+| **`agent analyze`** | **تحليل ذكي + توصية (AI Agent)** | **`forex agent analyze --pair EUR/USD`** |
 | `alert add` | إضافة تنبيه | `forex alert add --pair EUR/USD --condition "price > 1.09"` |
 | `alert list` | عرض التنبيهات | `forex alert list --active` |
 | `alert check` | فحص التنبيهات | `forex alert check` |
@@ -556,9 +633,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-........................................
+..............................................
 ----------------------------------------------------------------------
-Ran 52 tests in 0.6xxs
+Ran 60 tests in 0.7xxs
 
 OK
 ```
@@ -576,6 +653,7 @@ OK
 | `test_backtest.py` | Trade PnL + SMA Crossover Signals + Backtest Metrics (ROI, Drawdown, PF) | 6 |
 | `test_forecast.py` | FeatureExtractor + LogisticForecaster Training + Prediction + Time-Series Split | 7 |
 | `test_xai.py` | Feature Weights + PredictionExplainer + Bullish/Bearish Split + Global Importance | 8 |
+| `test_agent.py` | ForexAgent Orchestration + Signal Confluence + Action Recommendation + Confidence | 9 |
 
 ---
 
@@ -589,6 +667,10 @@ forex_tracker/
 ├── README.md                # توثيق المشروع
 ├── main.py                  # نقطة الدخول البديلة للتشغيل المباشر
 │
+├── agent/                   # الوكيل الذكي (AI Agent)
+│   ├── __init__.py
+│   └── market_agent.py      # ForexAgent: دمج المؤشرات + ML + XAI لتوصية
+│
 ├── api/                     # طبقة الاتصال الخارجي والشبكة
 │   ├── __init__.py
 │   ├── client.py            # عميل HTTP الموحد ومعالجة الـ Timeout
@@ -599,7 +681,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, forecast...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, forecast, agent...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -623,7 +705,8 @@ forex_tracker/
 │   ├── sprint-5.md
 │   ├── sprint-6.md
 │   ├── sprint-7.md
-│   └── sprint-8.md
+│   ├── sprint-8.md
+│   └── sprint-9.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
@@ -675,7 +758,8 @@ forex_tracker/
     ├── test_cache.py        # اختبارات Sprint 5
     ├── test_backtest.py     # اختبارات Sprint 6
     ├── test_forecast.py     # اختبارات Sprint 7
-    └── test_xai.py          # اختبارات Sprint 8
+    ├── test_xai.py          # اختبارات Sprint 8
+    └── test_agent.py        # اختبارات Sprint 9
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -683,25 +767,29 @@ forex_tracker/
 ```mermaid
 graph TD
     A[CLI Layer<br/>cli/] --> B[Service Layer<br/>services/]
+    A --> P[Agent Layer<br/>agent/]
+    
+    P --> B
+    
     B --> C[API Layer<br/>api/]
     B --> D[Storage Layer<br/>storage/]
     B --> H[Indicators Engine<br/>indicators/]
-    B --> I[Alert Engine<br/>services/alert_service]
-    B --> J[Cache Layer<br/>core/cache.py]
     B --> K[Backtest Engine<br/>services/backtest_service]
     B --> L[Strategies<br/>strategies/]
     B --> M[ML Engine<br/>ml/]
-    B --> N[XAI Engine<br/>ml/explainability.py]
+    B --> J[Cache Layer<br/>core/cache.py]
     B --> E[Domain Layer<br/>core/]
+    
+    K --> L
+    M --> N[XAI Engine<br/>ml/explainability.py]
+    
     H --> E
-    I --> E
-    J --> E
-    K --> E
     L --> E
     M --> E
-    N --> M
+    J --> E
     C --> E
     D --> E
+    
     F[Utils<br/>utils/] -.-> B
     G[Config<br/>core/config.py] -.-> C
     G -.-> D
@@ -709,18 +797,34 @@ graph TD
     G -.-> B
 
     style A fill:#bbf,stroke:#333,stroke-width:2px
+    style P fill:#fbf,stroke:#333,stroke-width:3px
     style B fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#bfb,stroke:#333,stroke-width:3px
     style H fill:#bdf,stroke:#333,stroke-width:2px
-    style I fill:#fdd,stroke:#333,stroke-width:2px
-    style J fill:#ffd,stroke:#333,stroke-width:2px
     style K fill:#dff,stroke:#333,stroke-width:2px
     style L fill:#fdf,stroke:#333,stroke-width:2px
     style M fill:#dfd,stroke:#333,stroke-width:2px
     style N fill:#ffe,stroke:#333,stroke-width:2px
+    style J fill:#ffd,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
+
+#### 🔄 اتجاه الاعتماد (Dependency Direction)
+
+> **القاعدة الذهبية**: الاعتماد يتدفق **للداخل فقط**:
+>
+> `CLI → Agent → Services → Domain`
+>
+> **لا عكس أبداً.** `Domain` لا يعرف من يستخدمه.
+
+| الطبقة | المسؤولية | تعتمد على |
+| -------- | ----------- | ----------- |
+| **CLI** | تحليل المدخلات → Dispatch | Agent / Services |
+| **Agent** | قرارات عليا — يجمع Services | Services |
+| **Services** | تنسيق — يجمع API / DB / ML | Domain + Infrastructure |
+| **Domain** | حقائق — `Candle`, `Trade`, `Alert`, `Pair` | لا شيء (مستقل) |
+| **Infrastructure** | API, DB, Cache, ML — تفاصيل قابلة للاستبدال | Domain |
 
 ---
 
@@ -733,7 +837,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Clean Architecture</b></td>
-<td>فصل طبقات النواة (Domain) والخدمات (Services) عن واجهات الـ CLI وقواعد البيانات.</td>
+<td>فصل طبقات النواة (Domain) والخدمات (Services) والوكيل (Agent) عن واجهات الـ CLI وقواعد البيانات.</td>
 </tr>
 <tr>
 <td><b>Immutable Value Objects</b></td>
@@ -745,7 +849,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Dependency Injection</b></td>
-<td>تمرير مصادر البيانات ومحركات التخزين والكاش والنماذج للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
+<td>تمرير مصادر البيانات ومحركات التخزين والكاش والنماذج والخدمات للوكيل لتسهيل عزل الاختبارات.</td>
 </tr>
 <tr>
 <td><b>Composite Key & Idempotency</b></td>
@@ -808,6 +912,18 @@ graph TD
 <td><code>contribution = feature × weight</code> (Local) + <code>abs(weight)</code> (Global) — تفسير كل قرار.</td>
 </tr>
 <tr>
+<td><b>Multi-Signal Confluence</b></td>
+<td>الوكيل يدمج 5 إشارات (SMA, RSI, MACD, ML, XAI) بنقاط موزونة — قرار أقوى من إشارة واحدة.</td>
+</tr>
+<tr>
+<td><b>WAIT as a Decision</b></td>
+<td>الانتظار قرار استثماري محوري — عند عدم توافق الإشارات، لا ندخل صفقة.</td>
+</tr>
+<tr>
+<td><b>Narrative Explainability</b></td>
+<td>الوكيل يُرجع <code>narrative</code> سردي بجانب الأرقام — للمتداول غير التقني.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -830,12 +946,12 @@ graph TD
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 | **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
+| **Sprint 9 — Forex AI Agent** | ✅ مكتمل | `v0.9.0` | [📄 عرض التوثيق](docs/sprint-9.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 9**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
-- [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
-- [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق
+- [ ] **Sprint 10**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
+- [ ] **Sprint 11**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
 - [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة
 
 ## 📄 الترخيص

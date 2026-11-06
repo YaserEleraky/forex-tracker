@@ -526,10 +526,16 @@ def cmd_forecast(args: argparse.Namespace) -> None:
     service = ForecastService()
 
     try:
-        print(f"\n🧠 Training ML Model & Forecasting next candle for {pair} [{interval}]...")
-        report = service.generate_forecast(pair=pair, interval=interval, limit=limit, explain=explain)
+        print(
+            f"\n🧠 Training ML Model & Forecasting next candle for {pair} [{interval}]..."
+        )
+        report = service.generate_forecast(
+            pair=pair, interval=interval, limit=limit, explain=explain
+        )
 
-        direction_icon = "🟢 UP (Bullish)" if report.direction == "UP" else "🔴 DOWN (Bearish)"
+        direction_icon = (
+            "🟢 UP (Bullish)" if report.direction == "UP" else "🔴 DOWN (Bearish)"
+        )
 
         print("\n" + "=" * 62)
         print(f"🔮 FOREX AI DIRECTIONAL FORECAST: {report.pair} ({report.interval})")
@@ -556,7 +562,9 @@ def cmd_forecast(args: argparse.Namespace) -> None:
             if exp.top_bullish_factors:
                 print("🟢 Bullish Drivers (Pushing price UP):")
                 for f in exp.top_bullish_factors:
-                    print(f"   ▲ {f.name:<18} | Impact: +{f.contribution:.4f} (Weight: {f.weight:+.2f})")
+                    print(
+                        f"   ▲ {f.name:<18} | Impact: +{f.contribution:.4f} (Weight: {f.weight:+.2f})"
+                    )
             else:
                 print("🟢 Bullish Drivers      : None")
 
@@ -564,18 +572,78 @@ def cmd_forecast(args: argparse.Namespace) -> None:
             if exp.top_bearish_factors:
                 print("🔴 Bearish Drags (Pushing price DOWN):")
                 for f in exp.top_bearish_factors:
-                    print(f"   ▼ {f.name:<18} | Impact: {f.contribution:.4f} (Weight: {f.weight:+.2f})")
+                    print(
+                        f"   ▼ {f.name:<18} | Impact: {f.contribution:.4f} (Weight: {f.weight:+.2f})"
+                    )
             else:
                 print("🔴 Bearish Drags        : None")
 
             print("-" * 62)
             top_global = max(exp.global_importance.items(), key=lambda x: x[1])
-            print(f"⭐ Top Influential Indicator Overall: {top_global[0]} (Importance: {top_global[1]:.2f})")
+            print(
+                f"⭐ Top Influential Indicator Overall: {top_global[0]} (Importance: {top_global[1]:.2f})"
+            )
             print("=" * 62)
 
-        print("⚠️ Note: Predictions are statistical probabilities, not financial advice.\n")
+        print(
+            "⚠️ Note: Predictions are statistical probabilities, not financial advice.\n"
+        )
 
     except ForexError as err:
         logger.error(f"Forecast generation failed: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+from agent.market_agent import ForexAgent
+
+
+def cmd_agent_analyze(args: argparse.Namespace) -> None:
+    """تشغيل الوكيل الذكي لتحليل السوق ودمج الإشارات وتقديم توصية تداول مفسرة."""
+    pair = getattr(args, "pair", "EUR/USD")
+    interval = getattr(args, "interval", "1day")
+    limit = getattr(args, "limit", 120)
+
+    agent = ForexAgent()
+
+    try:
+        print(f"\n🤖 Autonomous Forex Agent analyzing {pair} [{interval}]...")
+        report = agent.analyze_market(pair=pair, interval=interval, limit=limit)
+
+        action_icons = {
+            "BUY": "🟢 BUY (Bullish Opportunity)",
+            "SELL": "🔴 SELL (Bearish Opportunity)",
+            "WAIT": "🟡 WAIT (Indecisive / High Risk)",
+        }
+        action_display = action_icons.get(
+            report.recommended_action, report.recommended_action
+        )
+
+        print("\n" + "=" * 65)
+        print(f"🧠 FOREX AI AGENT SYNTHESIS REPORT: {report.pair} ({report.interval})")
+        print("=" * 65)
+        print(f"  • Current Market Price: {report.current_price:.5f}")
+        print(f"  • Market Regime       : {report.market_regime}")
+        print(f"  • Technical Bias      : {report.technical_bias}")
+        print(f"  • ML Forecast Bias    : {report.ml_bias}")
+        print("-" * 65)
+        print(f"  • RECOMMENDED ACTION  : {action_display}")
+        print(f"  • CONFIDENCE SCORE    : {report.confidence_score:.1f}%")
+        print("-" * 65)
+
+        print("📋 Key Evidence & Confluence Drivers:")
+        for idx, reason in enumerate(report.key_reasons, 1):
+            print(f"   {idx}. {reason}")
+
+        print("-" * 65)
+        print("📝 Executive Market Brief:")
+        print(f"   {report.narrative}")
+        print("=" * 65)
+        print(
+            "⚠️ Disclaimer: AI Agent evaluations are educational and analytical, not financial advice.\n"
+        )
+
+    except ForexError as err:
+        logger.error(f"Agent analysis failed: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)
