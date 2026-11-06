@@ -19,14 +19,16 @@ dependencies = [
     "requests",
     "python-dotenv",
     "redis",
+    "scikit-learn",
 ]
 
 [project.scripts]
 forex = "cli.parser:main"
 
+
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["cli*", "core*", "storage*", "utils*", "api*", "services*", "indicators*", "strategies*"]
+include = ["cli*", "core*", "storage*", "utils*", "api*", "services*", "indicators*", "strategies*","ml*"]
 # # أدوات التطوير المستقبلية
 # [tool.black]
 # line-length = 88

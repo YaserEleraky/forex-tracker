@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-6%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.6.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-7%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.7.0-blue?style=flat-square)
 
 </div>
 
@@ -57,6 +57,7 @@
 | 🔔 **Alert Engine** | نظام تنبيهات ذكي للسعر والمؤشرات مع كشف تكرار تلقائي |
 | 🗄️ **Cache Layer** | نظام كاش مزدوج (Memory / Redis) مع Cache-Aside و Fallback تلقائي |
 | 📊 **Backtesting Engine** | محاكي استراتيجيات تاريخي مع مقاييس أداء كاملة (Win Rate, ROI, Max Drawdown, Profit Factor) |
+| 🤖 **ML Forecasting** | تنبؤات احتمالية باتجاه السعر باستخدام Logistic Regression مع Time-Series Split (بدون تسريب بيانات) |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -75,6 +76,7 @@
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
+| **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -102,6 +104,11 @@
 <td><b>أدوات إضافية</b></td>
 <td><code>pip</code>, <code>venv</code></td>
 <td>مدمجة مع Python 3.12</td>
+</tr>
+<tr>
+<td><b>مكتبة ML</b></td>
+<td><code>scikit-learn</code></td>
+<td>مطلوبة للتنبؤات (<code>pip install scikit-learn</code>)</td>
 </tr>
 <tr>
 <td><b>اختياري</b></td>
@@ -144,6 +151,12 @@ pip install -e .
 ```
 
 > 💡 **ملاحظة**: خيار `-e` (Editable Mode) يتيح تعديل الكود واختباره **فوراً** عبر أمر `forex` دون الحاجة لإعادة التثبيت.
+
+### 4️⃣ تثبيت مكتبة التنبؤ (Sprint 7)
+
+```bash
+pip install scikit-learn
+```
 
 ---
 
@@ -261,6 +274,47 @@ Timestamp         | Close      | SMA(20)    | RSI(14)    | MACD (Hist)
 2026-10-10 13:00  | 1.0838     | 1.0792     | 57.95      | 0.00041           
 2026-10-10 14:00  | 1.0842     | 1.0795     | 58.42      | 0.00044           
 ```
+
+### 🔮 التنبؤ بالذكاء الاصطناعي (ML Forecasting)
+
+```bash
+forex forecast --pair EUR/USD --interval 1day --limit 150
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Training model and generating forecast for EUR/USD [1day]...
+
+========================================================
+ 🔮 ML Forecast: EUR/USD [1day]
+========================================================
+Model         : LogisticRegression
+Last Candle   : 2026-10-10 00:00 (Close: 1.0842)
+
+--- Prediction ---
+Direction     : 🟢 UP
+Up Probability: 62.50%
+Down Probability: 37.50%
+
+--- Model Performance ---
+Test Accuracy : 58.33%
+Train Samples : 96
+Test Samples  : 24
+========================================================
+```
+
+#### إعدادات متقدمة
+
+```bash
+# جلب المزيد من البيانات لدقة أفضل
+forex fetch --pair GBP/USD --interval 1day --limit 300
+forex forecast --pair GBP/USD --interval 1day --limit 300
+```
+
+> 💡 **ملاحظة**: يتطلب النموذج **60 شمعة على الأقل** (المخزنة محلياً). استخدم `forex fetch` أولاً.
+
+---
 
 ### 🔔 إدارة التنبيهات (Alerts)
 
@@ -397,7 +451,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name     : Forex Tracker
-Version      : 0.6.0
+Version      : 0.7.0
 Data Dir     : ./data
 Log File     : ./logs/app.log
 Status       : Ready
@@ -430,6 +484,7 @@ forex cache clear
 | `list` | استعراض السجل | `forex list --pair EUR/USD --interval 1h` |
 | `watchlist` | مقارنة لحظية | `forex watchlist --pairs A,B,C` |
 | `analyze` | تحليل فني ومؤشرات | `forex analyze --pair EUR/USD --interval 1day` |
+| **`forecast`** | **تنبؤ ML باتجاه السعر** | **`forex forecast --pair EUR/USD`** |
 | `alert add` | إضافة تنبيه | `forex alert add --pair EUR/USD --condition "price > 1.09"` |
 | `alert list` | عرض التنبيهات | `forex alert list --active` |
 | `alert check` | فحص التنبيهات | `forex alert check` |
@@ -450,9 +505,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-..................................
+......................................
 ----------------------------------------------------------------------
-Ran 37 tests in 0.4xxs
+Ran 44 tests in 0.5xxs
 
 OK
 ```
@@ -468,6 +523,7 @@ OK
 | `test_alerts.py` | AlertCondition Parse/Evaluate + Alert CRUD + Trigger Idempotency | 4 |
 | `test_cache.py` | MemoryCache TTL + RedisCache Fallback + Cache-Aside Pattern | 5 |
 | `test_backtest.py` | Trade PnL + SMA Crossover Signals + Backtest Metrics (ROI, Drawdown, PF) | 6 |
+| `test_forecast.py` | FeatureExtractor + LogisticForecaster Training + Prediction + Time-Series Split | 7 |
 
 ---
 
@@ -491,7 +547,7 @@ forex_tracker/
 ├── cli/                     # طبقة سطر الأوامر
 │   ├── __init__.py
 │   ├── parser.py            # معالجة المدخلات ونقطة تشغيل CLI
-│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, cache...)
+│   └── commands.py          # دوال تنفيذ الأوامر (price, fetch, alert, backtest, forecast...)
 │
 ├── core/                    # النواة الأساسية ومنطق الـ Domain
 │   ├── __init__.py
@@ -513,13 +569,22 @@ forex_tracker/
 │   ├── sprint-3.md
 │   ├── sprint-4.md
 │   ├── sprint-5.md
-│   └── sprint-6.md
+│   ├── sprint-6.md
+│   └── sprint-7.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
 │   ├── base.py              # العقد التجريدي وكائنات النتائج (BaseIndicator)
 │   ├── moving_averages.py   # حساب SMA و EMA بدقة Decimal
 │   └── momentum.py          # مؤشرات الزخم والاتجاه (RSI & MACD)
+│
+├── ml/                      # طبقة التعلم الآلي (Machine Learning)
+│   ├── __init__.py
+│   ├── features.py          # هندسة واستخراج الميزات الفنية (FeatureExtractor)
+│   └── models/              # نماذج التنبؤ
+│       ├── __init__.py
+│       ├── base.py          # العقد التجريدي (BaseForecaster)
+│       └── logistic.py      # نموذج Logistic Regression (LogisticForecaster)
 │
 ├── strategies/              # استراتيجيات التداول
 │   ├── __init__.py
@@ -529,7 +594,8 @@ forex_tracker/
 │   ├── __init__.py
 │   ├── forex_service.py     # منسق العمليات (single/multi-pair + indicators + cache)
 │   ├── alert_service.py     # منسق إدارة وتقييم التنبيهات (Alert Engine)
-│   └── backtest_service.py  # محرك المحاكاة التاريخية وحساب المقاييس
+│   ├── backtest_service.py  # محرك المحاكاة التاريخية وحساب المقاييس
+│   └── forecast_service.py  # خدمة التنبؤ بالذكاء الاصطناعي (ML Orchestrator)
 │
 ├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
@@ -553,7 +619,8 @@ forex_tracker/
     ├── test_indicators.py   # اختبارات Sprint 3
     ├── test_alerts.py       # اختبارات Sprint 4
     ├── test_cache.py        # اختبارات Sprint 5
-    └── test_backtest.py     # اختبارات Sprint 6
+    ├── test_backtest.py     # اختبارات Sprint 6
+    └── test_forecast.py     # اختبارات Sprint 7
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -568,12 +635,14 @@ graph TD
     B --> J[Cache Layer<br/>core/cache.py]
     B --> K[Backtest Engine<br/>services/backtest_service]
     B --> L[Strategies<br/>strategies/]
+    B --> M[ML Engine<br/>ml/]
     B --> E[Domain Layer<br/>core/]
     H --> E
     I --> E
     J --> E
     K --> E
     L --> E
+    M --> E
     C --> E
     D --> E
     F[Utils<br/>utils/] -.-> B
@@ -590,6 +659,7 @@ graph TD
     style J fill:#ffd,stroke:#333,stroke-width:2px
     style K fill:#dff,stroke:#333,stroke-width:2px
     style L fill:#fdf,stroke:#333,stroke-width:2px
+    style M fill:#dfd,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
@@ -617,7 +687,7 @@ graph TD
 </tr>
 <tr>
 <td><b>Dependency Injection</b></td>
-<td>تمرير مصادر البيانات ومحركات التخزين والكاش للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
+<td>تمرير مصادر البيانات ومحركات التخزين والكاش والنماذج للخدمات لتسهيل عزل الاختبارات ومحاكاتها.</td>
 </tr>
 <tr>
 <td><b>Composite Key & Idempotency</b></td>
@@ -653,11 +723,27 @@ graph TD
 </tr>
 <tr>
 <td><b>Lookahead Prevention</b></td>
-<td>الاستراتيجية ترى <code>candles[:index+1]</code> فقط — لا بيانات مستقبلية.</td>
+<td>الاستراتيجية ترى <code>candles[:index+1]</code> فقط — لا بيانات مستقبلية. وفي ML: <code>next_c</code> للتدريب فقط.</td>
 </tr>
 <tr>
 <td><b>Sequential Simulation</b></td>
 <td>Backtest يمر زمنياً على الشموع مع state machine للصفقات المفتوحة/المغلقة.</td>
+</tr>
+<tr>
+<td><b>Time-Series Split</b></td>
+<td>تقسيم ML زمنياً (80/20) بدون Shuffle — Train على الماضي، Test على المستقبل.</td>
+</tr>
+<tr>
+<td><b>Probability-Based Prediction</b></td>
+<td>النموذج يُرجع <code>P(Up)</code> (0-1) قبل <code>predict()</code> — يسمح بـ thresholds مخصصة.</td>
+</tr>
+<tr>
+<td><b>Training-Serving Consistency</b></td>
+<td><code>extract_features</code> و <code>extract_latest_features</code> ينتجان نفس الـ 5 features.</td>
+</tr>
+<tr>
+<td><b>Stationarity</b></td>
+<td>استخدام Returns بدل raw prices + تطبيع RSI/100 — لتحسين تدريب النماذج.</td>
 </tr>
 <tr>
 <td><b>YAGNI</b></td>
@@ -680,11 +766,11 @@ graph TD
 | **Sprint 4 — Alerts & Triggers** | ✅ مكتمل | `v0.4.0` | [📄 عرض التوثيق](docs/sprint-4.md) |
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
+| **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 7**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
-- [ ] **Sprint 8**: Machine Learning (Forecasting) — نماذج التنبؤ باتجاه الأسعار
+- [ ] **Sprint 8**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
 - [ ] **Sprint 9**: Explainable AI (XAI) — طبقة تفسير قرارات النماذج الذكية
 - [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
 - [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق

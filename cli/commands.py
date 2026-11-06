@@ -6,7 +6,7 @@ from core.logger import logger
 from services.forex_service import ForexService
 from services.alert_service import AlertService
 from decimal import Decimal
-
+from services.forecast_service import ForecastService
 
 
 def cmd_version(args: argparse.Namespace) -> None:
@@ -449,6 +449,7 @@ def cmd_backtest(args: argparse.Namespace) -> None:
 
     from services.backtest_service import BacktestService
     from strategies.sma_crossover import SMACrossoverStrategy
+
     service = BacktestService()
 
     try:
@@ -511,5 +512,48 @@ def cmd_backtest(args: argparse.Namespace) -> None:
 
     except ForexError as err:
         logger.error(f"Backtest execution failed: {err}")
+        print(f"Error: {err}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_forecast(args: argparse.Namespace) -> None:
+    """تدريب نموذج التعلّم الآلي والتنبؤ باتجاه حركة السعر للشمعة القادمة."""
+    pair = getattr(args, "pair", "EUR/USD")
+    interval = getattr(args, "interval", "1day")
+    limit = getattr(args, "limit", 150)
+
+    service = ForecastService()
+
+    try:
+        print(
+            f"\n🧠 Training ML Model & Forecasting next candle for {pair} [{interval}]..."
+        )
+        report = service.generate_forecast(pair=pair, interval=interval, limit=limit)
+
+        direction_icon = (
+            "🟢 UP (Bullish)" if report.direction == "UP" else "🔴 DOWN (Bearish)"
+        )
+
+        print("\n" + "=" * 60)
+        print(f"🔮 FOREX AI DIRECTIONAL FORECAST: {report.pair} ({report.interval})")
+        print(f"Model: {report.model_name} | Lookback: {limit} candles")
+        print("=" * 60)
+        print(f"  • Last Candle Time    : {report.last_candle_time}")
+        print(f"  • Latest Close Price  : {report.latest_close:.5f}")
+        print("-" * 60)
+        print(f"  • Predicted Direction : {direction_icon}")
+        print(f"  • Upward Probability  : {report.up_probability:.2f}%")
+        print(f"  • Downward Probability: {report.down_probability:.2f}%")
+        print("-" * 60)
+        print(f"  • Model Test Accuracy : {report.test_accuracy:.2f}%")
+        print(f"  • Training Samples    : {report.train_samples} candles")
+        print(f"  • Out-of-sample Test  : {report.test_samples} candles")
+        print("=" * 60)
+        print(
+            "⚠️ Note: Predictions are statistical probabilities, not financial advice.\n"
+        )
+
+    except ForexError as err:
+        logger.error(f"Forecast generation failed: {err}")
         print(f"Error: {err}", file=sys.stderr)
         sys.exit(1)

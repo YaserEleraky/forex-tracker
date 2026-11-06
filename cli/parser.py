@@ -14,7 +14,8 @@ from cli.commands import (
     cmd_alert_check,
     cmd_alert_delete,
     cmd_cache_clear,
-    cmd_backtest,  # <-- أضف هذا
+    cmd_backtest,
+    cmd_forecast,  # <-- أضف هذا
 )
 
 
@@ -235,6 +236,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="Trade position size (default: 10000)",
     )
     p_backtest.set_defaults(func=cmd_backtest)
+
+    # 11. أمر forecast
+    p_forecast = subparsers.add_parser(
+        "forecast", help="Predict next candle direction using Machine Learning"
+    )
+    p_forecast.add_argument(
+        "--pair", type=str, default="EUR/USD", help="Currency pair (default: EUR/USD)"
+    )
+    p_forecast.add_argument(
+        "--interval",
+        type=str,
+        default="1day",
+        help="Timeframe interval (default: 1day)",
+    )
+    p_forecast.add_argument(
+        "--limit",
+        type=int,
+        default=150,
+        help="Historical lookback candles for training (default: 150)",
+    )
+    p_forecast.set_defaults(func=cmd_forecast)
     return parser
 
 
