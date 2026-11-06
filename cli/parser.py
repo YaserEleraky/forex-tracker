@@ -256,6 +256,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=150,
         help="Historical lookback candles for training (default: 150)",
     )
+    p_forecast.add_argument(
+        "--explain", action="store_true", help="Explain model prediction factors using XAI"
+    )
     p_forecast.set_defaults(func=cmd_forecast)
     return parser
 

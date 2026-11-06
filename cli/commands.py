@@ -517,41 +517,63 @@ def cmd_backtest(args: argparse.Namespace) -> None:
 
 
 def cmd_forecast(args: argparse.Namespace) -> None:
-    """تدريب نموذج التعلّم الآلي والتنبؤ باتجاه حركة السعر للشمعة القادمة."""
+    """تدريب نموذج التعلّم الآلي والتنبؤ باتجاه حركة السعر مع طبقة التفسير الفني (XAI)."""
     pair = getattr(args, "pair", "EUR/USD")
     interval = getattr(args, "interval", "1day")
     limit = getattr(args, "limit", 150)
+    explain = getattr(args, "explain", False)
 
     service = ForecastService()
 
     try:
-        print(
-            f"\n🧠 Training ML Model & Forecasting next candle for {pair} [{interval}]..."
-        )
-        report = service.generate_forecast(pair=pair, interval=interval, limit=limit)
+        print(f"\n🧠 Training ML Model & Forecasting next candle for {pair} [{interval}]...")
+        report = service.generate_forecast(pair=pair, interval=interval, limit=limit, explain=explain)
 
-        direction_icon = (
-            "🟢 UP (Bullish)" if report.direction == "UP" else "🔴 DOWN (Bearish)"
-        )
+        direction_icon = "🟢 UP (Bullish)" if report.direction == "UP" else "🔴 DOWN (Bearish)"
 
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 62)
         print(f"🔮 FOREX AI DIRECTIONAL FORECAST: {report.pair} ({report.interval})")
         print(f"Model: {report.model_name} | Lookback: {limit} candles")
-        print("=" * 60)
+        print("=" * 62)
         print(f"  • Last Candle Time    : {report.last_candle_time}")
         print(f"  • Latest Close Price  : {report.latest_close:.5f}")
-        print("-" * 60)
+        print("-" * 62)
         print(f"  • Predicted Direction : {direction_icon}")
         print(f"  • Upward Probability  : {report.up_probability:.2f}%")
         print(f"  • Downward Probability: {report.down_probability:.2f}%")
-        print("-" * 60)
+        print("-" * 62)
         print(f"  • Model Test Accuracy : {report.test_accuracy:.2f}%")
         print(f"  • Training Samples    : {report.train_samples} candles")
         print(f"  • Out-of-sample Test  : {report.test_samples} candles")
-        print("=" * 60)
-        print(
-            "⚠️ Note: Predictions are statistical probabilities, not financial advice.\n"
-        )
+        print("=" * 62)
+
+        if report.explanation:
+            exp = report.explanation
+            print("\n🔍 EXPLAINABLE AI (XAI) DECISION BREAKDOWN:")
+            print("Why did the model reach this conclusion?")
+            print("-" * 62)
+
+            if exp.top_bullish_factors:
+                print("🟢 Bullish Drivers (Pushing price UP):")
+                for f in exp.top_bullish_factors:
+                    print(f"   ▲ {f.name:<18} | Impact: +{f.contribution:.4f} (Weight: {f.weight:+.2f})")
+            else:
+                print("🟢 Bullish Drivers      : None")
+
+            print()
+            if exp.top_bearish_factors:
+                print("🔴 Bearish Drags (Pushing price DOWN):")
+                for f in exp.top_bearish_factors:
+                    print(f"   ▼ {f.name:<18} | Impact: {f.contribution:.4f} (Weight: {f.weight:+.2f})")
+            else:
+                print("🔴 Bearish Drags        : None")
+
+            print("-" * 62)
+            top_global = max(exp.global_importance.items(), key=lambda x: x[1])
+            print(f"⭐ Top Influential Indicator Overall: {top_global[0]} (Importance: {top_global[1]:.2f})")
+            print("=" * 62)
+
+        print("⚠️ Note: Predictions are statistical probabilities, not financial advice.\n")
 
     except ForexError as err:
         logger.error(f"Forecast generation failed: {err}")

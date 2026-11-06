@@ -71,3 +71,9 @@ class LogisticForecaster(BaseForecaster):
         probs = self.model.predict_proba([features])[0]
         # الاحتمالية الخاصة بالفئة 1 (الصعود)
         return float(probs[1])
+
+    def get_feature_weights(self) -> list[float]:
+        """إرجاع أوزان النموذج لكل ميزة (coef_[0]) لاستخدامها في طبقة التفسير."""
+        if not self.is_trained:
+            raise ValidationError("يجب تدريب النموذج أولاً قبل استخراج الأوزان.")
+        return [float(w) for w in self.model.coef_[0]]

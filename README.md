@@ -7,8 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-orange?style=flat-square)
-![Sprint](https://img.shields.io/badge/Sprint-7%20Complete-success?style=flat-square)
-![Version](https://img.shields.io/badge/Version-0.7.0-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-8%20Complete-success?style=flat-square)
+![Version](https://img.shields.io/badge/Version-0.8.0-blue?style=flat-square)
 
 </div>
 
@@ -58,6 +58,7 @@
 | 🗄️ **Cache Layer** | نظام كاش مزدوج (Memory / Redis) مع Cache-Aside و Fallback تلقائي |
 | 📊 **Backtesting Engine** | محاكي استراتيجيات تاريخي مع مقاييس أداء كاملة (Win Rate, ROI, Max Drawdown, Profit Factor) |
 | 🤖 **ML Forecasting** | تنبؤات احتمالية باتجاه السعر باستخدام Logistic Regression مع Time-Series Split (بدون تسريب بيانات) |
+| 🔍 **XAI (Explainable AI)** | تفسير كل قرار تنبؤ: أي المؤشرات دفعت الصعود/الهبوط، بأي قوة، ولماذا |
 | 🧪 **Testable** | Dependency Injection وعزل كامل للاختبارات |
 | 📝 **Logging شامل** | تسجيل دائم في ملفات + عرض على الطرفية |
 
@@ -77,6 +78,7 @@
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
+| **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
 
 > 💡 كل ملف توثيق يحتوي على: المكونات، الأنماط المعمارية، مخططات التدفق، وقرارات التصميم.
 
@@ -270,7 +272,7 @@ Timestamp         | Close      | SMA(20)    | RSI(14)    | MACD (Hist)
 ---------------------------------------------------------------------------
 2026-10-10 10:00  | 1.0815     | 1.0782     | 54.12      | 0.00031           
 2026-10-10 11:00  | 1.0822     | 1.0786     | 55.40      | 0.00035           
-2026-10-10 12:00  | 1.0830     | 1.0789     | 56.81      | 0.00039           
+2026-10-10 12:00     | 1.0830     | 1.0789     | 56.81      | 0.00039           
 2026-10-10 13:00  | 1.0838     | 1.0792     | 57.95      | 0.00041           
 2026-10-10 14:00  | 1.0842     | 1.0795     | 58.42      | 0.00044           
 ```
@@ -304,12 +306,60 @@ Test Samples  : 24
 ========================================================
 ```
 
+### 🔍 التنبؤ مع التفسير (XAI — Explainable AI)
+
+```bash
+forex forecast --pair EUR/USD --interval 1day --limit 150 --explain
+```
+
+**المخرجات المتوقعة:**
+
+```
+⏳ Training model and generating forecast for EUR/USD [1day]...
+
+========================================================
+ 🔮 ML Forecast: EUR/USD [1day]
+========================================================
+Model         : LogisticRegression
+Last Candle   : 2026-10-10 00:00 (Close: 1.0842)
+
+--- Prediction ---
+Direction     : 🟢 UP
+Up Probability: 62.50%
+Down Probability: 37.50%
+
+--- Model Performance ---
+Test Accuracy : 58.33%
+Train Samples : 96
+Test Samples  : 24
+
+--- 🧠 XAI Explanation (Why this prediction?) ---
+🟢 Top Bullish Drivers:
+  1. RSI (Normalized)  : +0.5850  (Weight: 0.90)
+  2. Price Return      : +0.0045  (Weight: 1.50)
+  3. MACD              : +0.0024  (Weight: 1.20)
+
+🔴 Top Bearish Drags:
+  1. SMA Distance      : -0.0120  (Weight: -0.80)
+  2. Candle Range      : -0.0008  (Weight: -0.20)
+
+📊 Global Feature Importance (Overall Model Weights):
+  1. Price Return      : 1.50
+  2. MACD              : 1.20
+  3. RSI (Normalized)  : 0.90
+  4. SMA Distance      : 0.80
+  5. Candle Range      : 0.20
+========================================================
+```
+
+> 💡 **ملاحظة**: راية `--explain` تُظهر **لماذا** اتخذ النموذج هذا القرار — أي المؤشرات دفعته صعوداً (Bullish) وأيها هبوطاً (Bearish)، بالإضافة إلى **الأهمية الشاملة** لكل ميزة في النموذج.
+
 #### إعدادات متقدمة
 
 ```bash
 # جلب المزيد من البيانات لدقة أفضل
 forex fetch --pair GBP/USD --interval 1day --limit 300
-forex forecast --pair GBP/USD --interval 1day --limit 300
+forex forecast --pair GBP/USD --interval 1day --limit 300 --explain
 ```
 
 > 💡 **ملاحظة**: يتطلب النموذج **60 شمعة على الأقل** (المخزنة محلياً). استخدم `forex fetch` أولاً.
@@ -451,7 +501,7 @@ forex status
 ```
 --- Forex Tracker Status ---
 App Name     : Forex Tracker
-Version      : 0.7.0
+Version      : 0.8.0
 Data Dir     : ./data
 Log File     : ./logs/app.log
 Status       : Ready
@@ -485,6 +535,7 @@ forex cache clear
 | `watchlist` | مقارنة لحظية | `forex watchlist --pairs A,B,C` |
 | `analyze` | تحليل فني ومؤشرات | `forex analyze --pair EUR/USD --interval 1day` |
 | **`forecast`** | **تنبؤ ML باتجاه السعر** | **`forex forecast --pair EUR/USD`** |
+| **`forecast --explain`** | **تنبؤ + تفسير XAI** | **`forex forecast --pair EUR/USD --explain`** |
 | `alert add` | إضافة تنبيه | `forex alert add --pair EUR/USD --condition "price > 1.09"` |
 | `alert list` | عرض التنبيهات | `forex alert list --active` |
 | `alert check` | فحص التنبيهات | `forex alert check` |
@@ -505,9 +556,9 @@ python -m unittest discover tests
 **النتيجة المتوقعة:**
 
 ```
-......................................
+........................................
 ----------------------------------------------------------------------
-Ran 44 tests in 0.5xxs
+Ran 52 tests in 0.6xxs
 
 OK
 ```
@@ -524,6 +575,7 @@ OK
 | `test_cache.py` | MemoryCache TTL + RedisCache Fallback + Cache-Aside Pattern | 5 |
 | `test_backtest.py` | Trade PnL + SMA Crossover Signals + Backtest Metrics (ROI, Drawdown, PF) | 6 |
 | `test_forecast.py` | FeatureExtractor + LogisticForecaster Training + Prediction + Time-Series Split | 7 |
+| `test_xai.py` | Feature Weights + PredictionExplainer + Bullish/Bearish Split + Global Importance | 8 |
 
 ---
 
@@ -570,7 +622,8 @@ forex_tracker/
 │   ├── sprint-4.md
 │   ├── sprint-5.md
 │   ├── sprint-6.md
-│   └── sprint-7.md
+│   ├── sprint-7.md
+│   └── sprint-8.md
 │
 ├── indicators/              # محرك المؤشرات الفنية (Domain Engine)
 │   ├── __init__.py
@@ -581,6 +634,7 @@ forex_tracker/
 ├── ml/                      # طبقة التعلم الآلي (Machine Learning)
 │   ├── __init__.py
 │   ├── features.py          # هندسة واستخراج الميزات الفنية (FeatureExtractor)
+│   ├── explainability.py    # محرك تفسير القرارات (PredictionExplainer - XAI)
 │   └── models/              # نماذج التنبؤ
 │       ├── __init__.py
 │       ├── base.py          # العقد التجريدي (BaseForecaster)
@@ -595,7 +649,7 @@ forex_tracker/
 │   ├── forex_service.py     # منسق العمليات (single/multi-pair + indicators + cache)
 │   ├── alert_service.py     # منسق إدارة وتقييم التنبيهات (Alert Engine)
 │   ├── backtest_service.py  # محرك المحاكاة التاريخية وحساب المقاييس
-│   └── forecast_service.py  # خدمة التنبؤ بالذكاء الاصطناعي (ML Orchestrator)
+│   └── forecast_service.py  # خدمة التنبؤ بالذكاء الاصطناعي (ML + XAI Orchestrator)
 │
 ├── storage/                 # طبقة التخزين الدائم
 │   ├── __init__.py
@@ -620,7 +674,8 @@ forex_tracker/
     ├── test_alerts.py       # اختبارات Sprint 4
     ├── test_cache.py        # اختبارات Sprint 5
     ├── test_backtest.py     # اختبارات Sprint 6
-    └── test_forecast.py     # اختبارات Sprint 7
+    ├── test_forecast.py     # اختبارات Sprint 7
+    └── test_xai.py          # اختبارات Sprint 8
 ```
 
 ### 🗂️ الطبقات المعمارية
@@ -636,6 +691,7 @@ graph TD
     B --> K[Backtest Engine<br/>services/backtest_service]
     B --> L[Strategies<br/>strategies/]
     B --> M[ML Engine<br/>ml/]
+    B --> N[XAI Engine<br/>ml/explainability.py]
     B --> E[Domain Layer<br/>core/]
     H --> E
     I --> E
@@ -643,6 +699,7 @@ graph TD
     K --> E
     L --> E
     M --> E
+    N --> M
     C --> E
     D --> E
     F[Utils<br/>utils/] -.-> B
@@ -660,6 +717,7 @@ graph TD
     style K fill:#dff,stroke:#333,stroke-width:2px
     style L fill:#fdf,stroke:#333,stroke-width:2px
     style M fill:#dfd,stroke:#333,stroke-width:2px
+    style N fill:#ffe,stroke:#333,stroke-width:2px
     style C fill:#fdd,stroke:#333
     style D fill:#fdd,stroke:#333
 ```
@@ -746,6 +804,10 @@ graph TD
 <td>استخدام Returns بدل raw prices + تطبيع RSI/100 — لتحسين تدريب النماذج.</td>
 </tr>
 <tr>
+<td><b>XAI Local & Global</b></td>
+<td><code>contribution = feature × weight</code> (Local) + <code>abs(weight)</code> (Global) — تفسير كل قرار.</td>
+</tr>
+<tr>
 <td><b>YAGNI</b></td>
 <td>بناء ما نحتاجه فقط في كل Sprint دون Over-engineering.</td>
 </tr>
@@ -767,11 +829,11 @@ graph TD
 | **Sprint 5 — Caching & Performance** | ✅ مكتمل | `v0.5.0` | [📄 عرض التوثيق](docs/sprint-5.md) |
 | **Sprint 6 — Strategy Backtesting** | ✅ مكتمل | `v0.6.0` | [📄 عرض التوثيق](docs/sprint-6.md) |
 | **Sprint 7 — ML Forecasting** | ✅ مكتمل | `v0.7.0` | [📄 عرض التوثيق](docs/sprint-7.md) |
+| **Sprint 8 — Explainable AI (XAI)** | ✅ مكتمل | `v0.8.0` | [📄 عرض التوثيق](docs/sprint-8.md) |
 
 ### 🔮 قادم
 
-- [ ] **Sprint 8**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
-- [ ] **Sprint 9**: Explainable AI (XAI) — طبقة تفسير قرارات النماذج الذكية
+- [ ] **Sprint 9**: Risk Management — حاسبة إدارة المخاطر وأحجام العقود
 - [ ] **Sprint 10**: Docker & Background Tasks — حاويات النشر وجدولة المهام الآلية
 - [ ] **Sprint 11**: Forex AI Agent — وكيل ذكي تفاعلي لتحليل الأسواق
 - [ ] **Sprint 12**: Packaging & Final Release — توثيق معماري نهائي ونشر الحزمة

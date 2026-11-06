@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
@@ -8,6 +8,7 @@ from core.exceptions import ValidationError
 from core.intervals import Interval
 from core.logger import logger
 from core.pair import CurrencyPair
+from ml.explainability import ExplanationResult, PredictionExplainer
 from ml.features import FeatureExtractor
 from ml.models.base import BaseForecaster
 from ml.models.logistic import LogisticForecaster
@@ -17,19 +18,20 @@ from storage.sqlite_storage import SQLiteStorage
 
 @dataclass
 class ForecastReport:
-    """تقرير التنبؤ بالاتجاه ومؤشرات النموذج الإحصائي."""
+    """تقرير التنبؤ بالاتجاه ومؤشرات النموذج الإحصائي وطبقة التفسير."""
 
     pair: str
     interval: str
     model_name: str
     last_candle_time: str
     latest_close: Decimal
-    direction: str  # "UP" أو "DOWN"
+    direction: str
     up_probability: float
     down_probability: float
     test_accuracy: float
     train_samples: int
     test_samples: int
+    explanation: ExplanationResult | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -65,10 +67,9 @@ class ForecastService:
         pair: str = "EUR/USD",
         interval: str = "1day",
         limit: int = 150,
+        explain: bool = False,
     ) -> ForecastReport:
-        """
-        جلب الشموع وتدريب النموذج وحساب احتمالية اتجاه الشمعة القادمة.
-        """
+        """جلب الشموع وتدريب النموذج وحساب احتمالية الاتجاه مع التفسير الفني الاختياري."""
         validated_pair = CurrencyPair.from_string(pair)
         validated_interval = Interval.from_str(interval)
 
@@ -106,6 +107,12 @@ class ForecastService:
         down_prob = 100.0 - up_prob
         direction = "UP" if up_prob >= 50.0 else "DOWN"
 
+        # 5. استخراج التفسير إذا طُلب ذلك
+        explanation_result: ExplanationResult | None = None
+        if explain:
+            weights = self.model.get_feature_weights()
+            explanation_result = PredictionExplainer.explain(latest_features, weights)
+
         last_candle = candles_sorted[-1]
 
         logger.info(
@@ -125,4 +132,5 @@ class ForecastService:
             test_accuracy=metrics["test_accuracy"],
             train_samples=int(metrics["train_samples"]),
             test_samples=int(metrics["test_samples"]),
+            explanation=explanation_result,
         )
